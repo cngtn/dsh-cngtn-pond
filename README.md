@@ -79,13 +79,26 @@ Three things did change, because a shell is not a landing page:
 
 ## Install
 
+One command, no clone:
+
 ```powershell
-# from the profile directory
-cd $env:USERPROFILE\.dsh\profiles\desktop
-dsh plugin --profile desktop add "file:C:/path/to/dsh-daoho-pond"
+npx github:cngtn/dsh-daoho-pond
 ```
 
-Then add the bundle to the profile's list and restart DSH:
+It installs into the `desktop` profile by default:
+
+```powershell
+npx github:cngtn/dsh-daoho-pond --list              # profiles on this machine
+npx github:cngtn/dsh-daoho-pond --profile web       # a different profile
+npx github:cngtn/dsh-daoho-pond --uninstall         # back to the stock design
+```
+
+The installer copies the bundle to `~/.dsh/themes/dsh-daoho-pond`, junctions it
+into the profile's `node_modules`, and records it as a `file:` dependency plus a
+bundle entry. The profile manifest is backed up before every write. `DSH_HOME`
+overrides `~/.dsh` for a non-default installation.
+
+Then restart DeepSeek Harness. The bundle list it writes looks like this:
 
 ```json
 {
@@ -99,6 +112,15 @@ Then add the bundle to the profile's list and restart DSH:
     }
   }
 }
+```
+
+### Manual install
+
+If you would rather wire it up yourself:
+
+```powershell
+cd $env:USERPROFILE\.dsh\profiles\desktop
+dsh plugin --profile desktop add "file:C:/path/to/dsh-daoho-pond"
 ```
 
 Only one theme at a time: token layers stack, and the last one registered wins
