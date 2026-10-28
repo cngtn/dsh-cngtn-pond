@@ -73,7 +73,7 @@ const modules = [
 const applySrc = stripModuleSyntax(read('src/apply.js'));
 
 const client = `/**
- * @local/dsh-cngtn-pond — Client half.
+ * @cngtn/dsh-cngtn-pond — Client half.
  *
  * Hand-written against the module-loader contract (the shell has no bundler):
  * it evaluates this file, the factory receives \`require\`, and the returned
@@ -105,7 +105,7 @@ const client = `/**
  * stock design.
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-cngtn-pond',
+  id: '@cngtn/dsh-cngtn-pond',
   factory: (require) => {
     const module = { exports: {} };
     const exports = module.exports;

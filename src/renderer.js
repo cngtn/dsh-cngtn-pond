@@ -43,6 +43,9 @@ const DARK = {
   white: [236, 228, 218],
   red: [232, 96, 56],
   black: [92, 90, 108],
+  // Asagi's back. Cooler and lighter than `black`, so the fish reads as blue-grey
+  // rather than as a black fish with a blue belly.
+  slate: [120, 132, 146],
   fin: [214, 206, 198],
   eye: [20, 20, 26],
   water: [255, 247, 240],
@@ -69,6 +72,7 @@ const LIGHT = {
   white: [112, 108, 104],
   red: [204, 62, 28],
   black: [36, 33, 40],
+  slate: [104, 116, 128],
   fin: [138, 132, 126],
   eye: [24, 22, 26],
   water: [38, 37, 35],
@@ -163,7 +167,7 @@ function rampFor(accent, palette) {
  * it. Keeping the pattern in body coordinates is what makes a fish look like it
  * is swimming rather than like a texture sliding over it.
  */
-function koiMarkings(k) {
+export function koiMarkings(k) {
   const r = (j) => hash3(k.id, j, 41);
   const saddles = (count, start = 0.25, spanTotal = 0.42) => {
     const out = [];
@@ -217,6 +221,15 @@ function koiMarkings(k) {
       return { base: 'white', accent, black: [], white: [] };
     }
   }
+}
+
+/**
+ * The tone names each palette provides. Exported so a test can prove that every
+ * variety's base tone exists in *both* palettes — the check that would have
+ * caught the missing `slate` before it froze the pond.
+ */
+export function paletteTones() {
+  return { dark: Object.keys(DARK), light: Object.keys(LIGHT) };
 }
 
 const packRgb = (c) => (c[0] << 16) | (c[1] << 8) | c[2];
@@ -672,8 +685,15 @@ export class KoiRenderer {
             const sheen = Math.max(0, Math.sin(s * 11 - t * 1.8 + k.id) - 0.7) / 0.3;
             tile = ramp(this.ramp(k), 0.15 + 0.8 * lum + lean + grain + sheen * 0.35);
           } else {
+            // `?? palette.white` is deliberate: a variety whose tone is missing
+            // from a palette must draw as a pale fish, not throw inside the
+            // frame and stop the whole pond.
             const tone =
-              skin === 'black' ? palette.black : skin === 'slate' ? palette.slate : palette.white;
+              (skin === 'black'
+                ? palette.black
+                : skin === 'slate'
+                  ? palette.slate
+                  : palette.white) ?? palette.white;
             tile = mix(palette.bg, tone, tile0 + (tile1 - tile0) * lum);
           }
           if (hits === 5) {

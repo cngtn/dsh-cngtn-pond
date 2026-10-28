@@ -55,7 +55,7 @@ in `cordis.patch.yml`:
 ```yaml
 - insert:
     - id: cngtn-pond
-      name: '@local/dsh-cngtn-pond'
+      name: '@cngtn/dsh-cngtn-pond'
       config:
         fish: 6
         palette: warm
@@ -164,7 +164,7 @@ Then restart DeepSeek Harness. The bundle list it writes looks like this:
       "bundles": [
         "@deepseek-ai/dsh-base",
         "@deepseek-ai/dsh-web-app",
-        "@local/dsh-cngtn-pond"
+        "@cngtn/dsh-cngtn-pond"
       ]
     }
   }
@@ -258,7 +258,7 @@ after `dsh plugin --profile … install` and a restart.
 
 | Check | Result |
 |---|---|
-| Bundle activates | `@local/dsh-cngtn-pond` reaches `active`; no boot-audit entry |
+| Bundle activates | `@cngtn/dsh-cngtn-pond` reaches `active`; no boot-audit entry |
 | Canvas mounted | `#cngtn-pond-canvas` present, 1280×820 in the app, 1440×900 in the browser |
 | Pond painting | 23k–66k non-transparent pixels, moving between frames |
 | Tokens (light) | `--dsw-alias-bg-base` `#f5f4f1`, `--dsw-alias-label-primary` `#262523`, brand `#cc3e1c` |

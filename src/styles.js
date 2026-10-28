@@ -80,19 +80,21 @@ body [data-slot="root"] > div {
 /* ── The Windows titlebar strip ───────────────────────────────────────────
    The strip that carries the window caption and the \`Application / Edit\` menu
    is the frame's \`::before\`: 40px tall, \`-webkit-app-region: drag\`, painted
-   with \`--dsw-specific-sidebar-fill\`. Left alone it is a solid paper band
-   across the top of an otherwise glass window.
+   with \`--dsw-specific-sidebar-fill\`.
 
-   It becomes a frosted sheet like the panels. The menu lives in a shadow root,
-   so its buttons cannot be restyled from here, but it inherits the theme's font
-   and label tokens and floats above this strip — the blur is what makes the two
-   read as one surface.
+   It is frosted, like the panels below it. Electron draws the minimise /
+   maximise / close buttons itself in a block whose colour comes from the same
+   token, and Windows composites that block without alpha — so the buttons stay
+   flat while the strip picks up the pond. That seam is accepted deliberately:
+   the alternative is an opaque bar, and the bar is the largest surface in the
+   window. The strip's tint is kept close to the buttons' fill so the seam reads
+   as a material edge rather than as a mistake.
 
    The pseudo-element owns no children, so the containing-block hazard that
    forced the panels onto \`::before\` does not apply, and the drag region is
    untouched. */
 html[data-windows-titlebar] body [data-slot="root"] > div::before {
-  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 58%, transparent);
+  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 62%, transparent);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
   backdrop-filter: blur(22px) saturate(150%);
 }

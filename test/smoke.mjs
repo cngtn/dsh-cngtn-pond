@@ -56,10 +56,12 @@ const scope = new Function(
   between('const __m_world = (() => {', 'const __m_shape = (() => {') +
     '\n' +
     between('const __m_shape = (() => {', 'const __m_renderer = (() => {') +
-    '\nreturn { World, KOI_NODES, classify, bodyHalfWidth, angleDiff, hash3, ACCENTS, ACCENT_PRESETS, PALETTE_PRESETS, VARIETIES };'
+    '\n' +
+    between('const __m_renderer = (() => {', 'const __m_engine = (() => {') +
+    '\nreturn { World, KOI_NODES, classify, bodyHalfWidth, angleDiff, hash3, ACCENTS, ACCENT_PRESETS, PALETTE_PRESETS, VARIETIES, koiMarkings, paletteTones };'
 )();
 
-const { World, KOI_NODES, classify, bodyHalfWidth, ACCENTS, ACCENT_PRESETS, VARIETIES } = scope;
+const { World, KOI_NODES, classify, bodyHalfWidth, ACCENTS, ACCENT_PRESETS, VARIETIES, koiMarkings, paletteTones } = scope;
 
 const failures = [];
 const check = (ok, label, detail) => {
@@ -109,6 +111,21 @@ check(
   mixed.koi.every((k) => Object.values(ACCENTS).includes(k.accent)),
   'every accent is one of the declared pigments'
 );
+
+// Every variety must have a tone in *both* palettes. A missing tone used to
+// reach mix() as undefined, throw inside the frame, and stop the pond for good —
+// which looked exactly like "the theme disappeared after a resize".
+const tones = paletteTones();
+// `accent` is not a palette tone: it resolves to that fish's own pigment ramp.
+const KINDS = ['white', 'black', 'slate', 'accent'];
+for (const variety of VARIETIES) {
+  const base = koiMarkings({ id: 1, variety, accent: ACCENTS.vermilion }).base;
+  check(KINDS.includes(base), variety + ' has a known base kind (' + base + ')');
+  if (base !== 'accent') {
+    check(tones.dark.includes(base), variety + ' has a dark tone (' + base + ')');
+    check(tones.light.includes(base), variety + ' has a light tone (' + base + ')');
+  }
+}
 
 // setOptions re-seeds in place, which is what the panel relies on.
 const tenFish = mixed.koi.length;

@@ -1,9 +1,15 @@
 # cngtn-pond bundle patch — inserts the `cngtn-pond` row into the profile.
 #
-# The row needs no configuration: the Client half registers one token layer, one
-# stylesheet, and one koi-pond canvas through the `theme` service, and removes
-# all three when the plugin is disabled. A user layer may override this row by
-# id (`cngtn-pond`) — the same-id row wins.
+# The row carries the pond's three settings. Declaring them here does two things:
+# the Client half receives them as `apply(ctx, config)`, and the Plugins page
+# renders an editable form for them on this bundle's own page (the Host half
+# declares the schema, so the page can describe and write it).
+#
+# A user layer may override this row by id (`cngtn-pond`) — the same-id row wins.
 - insert:
     - id: cngtn-pond
-      name: '@local/dsh-cngtn-pond'
+      name: '@cngtn/dsh-cngtn-pond'
+      config:
+        fish: 6
+        palette: mixed
+        young: true

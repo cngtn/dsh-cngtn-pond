@@ -171,6 +171,14 @@ export class PondEngine {
   };
 
   resize() {
+    try {
+      this.resizeNow();
+    } catch (error) {
+      console.error('[cngtn-pond] resize failed:', error && (error.stack || error.message));
+    }
+  }
+
+  resizeNow() {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return;
     this.renderer.resize(rect.width, rect.height, Math.min(window.devicePixelRatio || 1, 2));
@@ -253,19 +261,42 @@ export class PondEngine {
 
   frame = (now) => {
     if (this.disposed) return;
-    const dt = Math.min(0.1, (now - this.last) / 1000);
-    this.last = now;
-    this.acc += dt;
-    let steps = 0;
-    while (this.acc >= STEP && steps < MAX_STEPS) {
-      this.world.step(STEP);
-      this.acc -= STEP;
-      steps++;
+    // A frame that throws must not end the pond.
+    //
+    // This used to be an unguarded body: one bad value anywhere in the
+    // rasteriser threw before `requestAnimationFrame` was re-armed, the loop
+    // stopped for good, and the only cure was toggling the plugin off and on.
+    // The pond now survives a bad frame, reports it once, and keeps drawing —
+    // the next frame usually succeeds, and a persistent fault is visible in the
+    // console instead of looking like "the theme disappeared".
+    try {
+      const dt = Math.min(0.1, (now - this.last) / 1000);
+      this.last = now;
+      this.acc += dt;
+      let steps = 0;
+      while (this.acc >= STEP && steps < MAX_STEPS) {
+        this.world.step(STEP);
+        this.acc -= STEP;
+        steps++;
+      }
+      if (steps === MAX_STEPS) this.acc = 0;
+      if (++this.frames % MEASURE_EVERY_FRAMES === 0) this.measureContent();
+      this.renderer.render(this.world, dt);
+      this.report();
+      this.frameFaults = 0;
+    } catch (error) {
+      this.frameFaults = (this.frameFaults ?? 0) + 1;
+      // Report the first fault with a stack, then stay quiet: a per-frame
+      // console.error would flood the log at 60 Hz.
+      if (this.frameFaults === 1) {
+        console.error('[cngtn-pond] frame failed:', error && (error.stack || error.message));
+      }
+      if (this.frameFaults > 240) {
+        // Four seconds of continuous failure: stop rather than spin.
+        console.error('[cngtn-pond] pond stopped after repeated frame failures');
+        return;
+      }
     }
-    if (steps === MAX_STEPS) this.acc = 0;
-    if (++this.frames % MEASURE_EVERY_FRAMES === 0) this.measureContent();
-    this.renderer.render(this.world, dt);
-    this.report();
     this.raf = requestAnimationFrame(this.frame);
   };
 
@@ -274,9 +305,13 @@ export class PondEngine {
     if (this.world.time < 4) {
       for (let i = 0; i < 240; i++) this.world.step(STEP);
     }
-    this.measureContent();
-    this.renderer.render(this.world, STEP);
-    this.report();
+    try {
+      this.measureContent();
+      this.renderer.render(this.world, STEP);
+      this.report();
+    } catch (error) {
+      console.error('[cngtn-pond] still frame failed:', error && (error.stack || error.message));
+    }
   }
 
   toLocal(e) {

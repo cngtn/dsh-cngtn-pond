@@ -13,7 +13,7 @@
  */
 
 /** Layer identity for the token override; also the plugin's display id. */
-const ID = '@local/dsh-cngtn-pond';
+const ID = '@cngtn/dsh-cngtn-pond';
 
 /** Required Client services: the theme registry owns the token layer. */
 const inject = ['theme'];
@@ -331,6 +331,151 @@ function exposeApi() {
 }
 
 /**
+ * The bundle's own settings page.
+ *
+ * The Plugins page dispatches \`plugins.bundle.config\` with the bundle's package
+ * name as the key, and renders whatever is registered there between the bundle's
+ * description and its rows. Registering is what makes the pond settings appear
+ * on the marketplace/plugins page rather than only in a floating panel.
+ *
+ * The form is the shell's own \`SettingsFormModel\`, driven by the Host-backed
+ * config scope (\`ctx.configForms.get('cngtn-pond')\`), so Save, Discard, the dirty
+ * flag and the write path behave like the shipped bundle forms. Nothing here
+ * invents a settings transport.
+ *
+ * Every piece is optional: if \`configForms\` or the primitives are unavailable,
+ * the theme keeps working and the floating Pond panel plus the console API
+ * remain.
+ */
+function registerBundleConfig(ctx) {
+  if (typeof ctx.inject !== 'function') return;
+  try {
+    ctx.inject(['slots', 'configForms'], (child) => {
+      let React;
+      let primitives;
+      try {
+        React = require('react');
+        primitives = require('@deepseek-ai/dsh-client-ui-primitives');
+      } catch (error) {
+        console.warn('[cngtn-pond] settings form unavailable:', error && error.message);
+        return;
+      }
+      const { SettingsForm, SettingsFormModel, settingsNumberField, settingsTextField } = primitives;
+      if (!SettingsForm || !SettingsFormModel || !settingsNumberField || !settingsTextField) {
+        console.warn('[cngtn-pond] settings primitives missing; using the floating panel only');
+        return;
+      }
+
+      const scope = child.configForms.get('cngtn-pond');
+      const model = new SettingsFormModel(scope, [
+        {
+          ...settingsNumberField('fish'),
+          parse: (text) => {
+            const value = Number(text.trim());
+            return Number.isInteger(value) && value >= 3 && value <= 12
+              ? { kind: 'set', value }
+              : undefined;
+          },
+        },
+        {
+          ...settingsTextField('palette'),
+          parse: (text) => {
+            const value = text.trim();
+            return PALETTE_PRESETS.includes(value) ? { kind: 'set', value } : undefined;
+          },
+        },
+      ]);
+
+      const state = model.bind(() => ({
+        ...model.shell(),
+        fish: model.field('fish'),
+        palette: model.field('palette'),
+      }));
+
+      child.effect(() => () => model.dispose(), 'cngtn-pond: config form');
+
+      const PALETTE_HELP = 'mixed | warm | cool | mono';
+
+      function PondConfig(props) {
+        const view = props && props.view;
+        const snapshot = React.useSyncExternalStore
+          ? React.useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
+          : state.getSnapshot();
+
+        if (view === 'summary') {
+          return React.createElement(
+            'span',
+            null,
+            (snapshot.fish && snapshot.fish.text ? snapshot.fish.text : '—') +
+              ' fish · ' +
+              (snapshot.palette && snapshot.palette.text ? snapshot.palette.text : 'mixed')
+          );
+        }
+
+        const actions = model.actions();
+        return React.createElement(
+          SettingsForm,
+          {
+            labels: {
+              title: 'Pond',
+              description: 'How many koi swim behind the shell, and which colours they carry.',
+              save: 'Save',
+              discard: 'Discard',
+              reset: 'Reset',
+            },
+            shell: snapshot,
+            onSave: actions.save,
+            onDiscard: actions.discard,
+          },
+          React.createElement(
+            'label',
+            { style: { display: 'block', marginBottom: '10px' } },
+            React.createElement('span', { style: { display: 'block', marginBottom: '4px' } }, 'Fish (3–12)'),
+            React.createElement('input', {
+              type: 'number',
+              min: 3,
+              max: 12,
+              step: 1,
+              value: snapshot.fish ? snapshot.fish.text : '',
+              onChange: (event) => actions.edit('fish', event.target.value),
+              style: { width: '100%', padding: '4px 8px', borderRadius: '6px' },
+            })
+          ),
+          React.createElement(
+            'label',
+            { style: { display: 'block' } },
+            React.createElement('span', { style: { display: 'block', marginBottom: '4px' } }, 'Colour'),
+            React.createElement('input', {
+              type: 'text',
+              value: snapshot.palette ? snapshot.palette.text : '',
+              onChange: (event) => actions.edit('palette', event.target.value),
+              style: { width: '100%', padding: '4px 8px', borderRadius: '6px' },
+            }),
+            React.createElement(
+              'span',
+              { style: { display: 'block', marginTop: '4px', opacity: 0.7, fontSize: '12px' } },
+              PALETTE_HELP
+            )
+          )
+        );
+      }
+
+      child.slots.inject('plugins.bundle.config', () =>
+        child.slots.register(
+          {
+            name: 'plugins.bundle.config',
+            key: '@cngtn/dsh-cngtn-pond',
+          },
+          PondConfig
+        )
+      );
+    });
+  } catch (error) {
+    console.warn('[cngtn-pond] bundle config unavailable:', error && error.message);
+  }
+}
+
+/**
  * A "Pond" button in the Settings header. Optional on purpose: if the slot
  * service is missing or the contract changes, the theme keeps working and the
  * console API plus \`config\` in the patch row remain.
@@ -385,6 +530,7 @@ function apply(ctx, config) {
     ctx.effect(() => theme.overrideTokens(ID, tokens), 'cngtn-pond: token layer');
     ctx.effect(() => injectStyles(), 'cngtn-pond: stylesheet');
     exposeApi();
+    registerBundleConfig(ctx);
     installSettingsButton(ctx);
   } catch (error) {
     console.error('[cngtn-pond] apply failed:', error && (error.stack || error.message));

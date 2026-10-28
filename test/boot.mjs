@@ -90,7 +90,7 @@ try {
 
 check(layer !== null, 'token layer registered');
 if (layer) {
-  check(layer.id === '@local/dsh-cngtn-pond', 'layer id is the plugin id');
+  check(layer.id === '@cngtn/dsh-cngtn-pond', 'layer id is the plugin id');
 
   // The same rule the theme runtime enforces, verbatim.
   const bad = [];

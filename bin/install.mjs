@@ -12,7 +12,7 @@
  * exists. So the installer does what a package manager would do, explicitly:
  *
  *   1. copy the bundle to a stable place — `~/.dsh/themes/dsh-cngtn-pond`;
- *   2. link it into `<profile>/node_modules/@local/dsh-cngtn-pond`;
+ *   2. link it into `<profile>/node_modules/@cngtn/dsh-cngtn-pond`;
  *   3. record it as a `file:` dependency and add it to `dsh.profile.bundles`.
  *
  * Step 3 is what makes the theme survive a `pnpm install`: the dependency is
@@ -40,7 +40,7 @@ import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ID = '@local/dsh-cngtn-pond';
+const ID = '@cngtn/dsh-cngtn-pond';
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Files the shell loads at runtime. Fonts are already inlined in client.js. */

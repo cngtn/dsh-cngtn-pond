@@ -1,5 +1,5 @@
 /**
- * @local/dsh-cngtn-pond — Client half.
+ * @cngtn/dsh-cngtn-pond — Client half.
  *
  * Hand-written against the module-loader contract (the shell has no bundler):
  * it evaluates this file, the factory receives `require`, and the returned
@@ -31,7 +31,7 @@
  * stock design.
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-cngtn-pond',
+  id: '@cngtn/dsh-cngtn-pond',
   factory: (require) => {
     const module = { exports: {} };
     const exports = module.exports;
@@ -725,6 +725,9 @@ const DARK = {
   white: [236, 228, 218],
   red: [232, 96, 56],
   black: [92, 90, 108],
+  // Asagi's back. Cooler and lighter than `black`, so the fish reads as blue-grey
+  // rather than as a black fish with a blue belly.
+  slate: [120, 132, 146],
   fin: [214, 206, 198],
   eye: [20, 20, 26],
   water: [255, 247, 240],
@@ -751,6 +754,7 @@ const LIGHT = {
   white: [112, 108, 104],
   red: [204, 62, 28],
   black: [36, 33, 40],
+  slate: [104, 116, 128],
   fin: [138, 132, 126],
   eye: [24, 22, 26],
   water: [38, 37, 35],
@@ -899,6 +903,15 @@ function koiMarkings(k) {
       return { base: 'white', accent, black: [], white: [] };
     }
   }
+}
+
+/**
+ * The tone names each palette provides. Exported so a test can prove that every
+ * variety's base tone exists in *both* palettes — the check that would have
+ * caught the missing `slate` before it froze the pond.
+ */
+function paletteTones() {
+  return { dark: Object.keys(DARK), light: Object.keys(LIGHT) };
 }
 
 const packRgb = (c) => (c[0] << 16) | (c[1] << 8) | c[2];
@@ -1354,8 +1367,15 @@ class KoiRenderer {
             const sheen = Math.max(0, Math.sin(s * 11 - t * 1.8 + k.id) - 0.7) / 0.3;
             tile = ramp(this.ramp(k), 0.15 + 0.8 * lum + lean + grain + sheen * 0.35);
           } else {
+            // `?? palette.white` is deliberate: a variety whose tone is missing
+            // from a palette must draw as a pale fish, not throw inside the
+            // frame and stop the whole pond.
             const tone =
-              skin === 'black' ? palette.black : skin === 'slate' ? palette.slate : palette.white;
+              (skin === 'black'
+                ? palette.black
+                : skin === 'slate'
+                  ? palette.slate
+                  : palette.white) ?? palette.white;
             tile = mix(palette.bg, tone, tile0 + (tile1 - tile0) * lum);
           }
           if (hits === 5) {
@@ -1532,9 +1552,9 @@ class KoiRenderer {
 }
 
 
-return { KoiRenderer };
+return { koiMarkings, paletteTones, KoiRenderer };
 })();
-const { KoiRenderer } = __m_renderer;
+const { koiMarkings, paletteTones, KoiRenderer } = __m_renderer;
 
 /* ── engine ─────────────────────────────────────────────────────────────── */
 const __m_engine = (() => {
@@ -1710,6 +1730,14 @@ class PondEngine {
   };
 
   resize() {
+    try {
+      this.resizeNow();
+    } catch (error) {
+      console.error('[cngtn-pond] resize failed:', error && (error.stack || error.message));
+    }
+  }
+
+  resizeNow() {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return;
     this.renderer.resize(rect.width, rect.height, Math.min(window.devicePixelRatio || 1, 2));
@@ -1792,19 +1820,42 @@ class PondEngine {
 
   frame = (now) => {
     if (this.disposed) return;
-    const dt = Math.min(0.1, (now - this.last) / 1000);
-    this.last = now;
-    this.acc += dt;
-    let steps = 0;
-    while (this.acc >= STEP && steps < MAX_STEPS) {
-      this.world.step(STEP);
-      this.acc -= STEP;
-      steps++;
+    // A frame that throws must not end the pond.
+    //
+    // This used to be an unguarded body: one bad value anywhere in the
+    // rasteriser threw before `requestAnimationFrame` was re-armed, the loop
+    // stopped for good, and the only cure was toggling the plugin off and on.
+    // The pond now survives a bad frame, reports it once, and keeps drawing —
+    // the next frame usually succeeds, and a persistent fault is visible in the
+    // console instead of looking like "the theme disappeared".
+    try {
+      const dt = Math.min(0.1, (now - this.last) / 1000);
+      this.last = now;
+      this.acc += dt;
+      let steps = 0;
+      while (this.acc >= STEP && steps < MAX_STEPS) {
+        this.world.step(STEP);
+        this.acc -= STEP;
+        steps++;
+      }
+      if (steps === MAX_STEPS) this.acc = 0;
+      if (++this.frames % MEASURE_EVERY_FRAMES === 0) this.measureContent();
+      this.renderer.render(this.world, dt);
+      this.report();
+      this.frameFaults = 0;
+    } catch (error) {
+      this.frameFaults = (this.frameFaults ?? 0) + 1;
+      // Report the first fault with a stack, then stay quiet: a per-frame
+      // console.error would flood the log at 60 Hz.
+      if (this.frameFaults === 1) {
+        console.error('[cngtn-pond] frame failed:', error && (error.stack || error.message));
+      }
+      if (this.frameFaults > 240) {
+        // Four seconds of continuous failure: stop rather than spin.
+        console.error('[cngtn-pond] pond stopped after repeated frame failures');
+        return;
+      }
     }
-    if (steps === MAX_STEPS) this.acc = 0;
-    if (++this.frames % MEASURE_EVERY_FRAMES === 0) this.measureContent();
-    this.renderer.render(this.world, dt);
-    this.report();
     this.raf = requestAnimationFrame(this.frame);
   };
 
@@ -1813,9 +1864,13 @@ class PondEngine {
     if (this.world.time < 4) {
       for (let i = 0; i < 240; i++) this.world.step(STEP);
     }
-    this.measureContent();
-    this.renderer.render(this.world, STEP);
-    this.report();
+    try {
+      this.measureContent();
+      this.renderer.render(this.world, STEP);
+      this.report();
+    } catch (error) {
+      console.error('[cngtn-pond] still frame failed:', error && (error.stack || error.message));
+    }
   }
 
   toLocal(e) {
@@ -2457,19 +2512,21 @@ body [data-slot="root"] > div {
 /* ── The Windows titlebar strip ───────────────────────────────────────────
    The strip that carries the window caption and the \`Application / Edit\` menu
    is the frame's \`::before\`: 40px tall, \`-webkit-app-region: drag\`, painted
-   with \`--dsw-specific-sidebar-fill\`. Left alone it is a solid paper band
-   across the top of an otherwise glass window.
+   with \`--dsw-specific-sidebar-fill\`.
 
-   It becomes a frosted sheet like the panels. The menu lives in a shadow root,
-   so its buttons cannot be restyled from here, but it inherits the theme's font
-   and label tokens and floats above this strip — the blur is what makes the two
-   read as one surface.
+   It is frosted, like the panels below it. Electron draws the minimise /
+   maximise / close buttons itself in a block whose colour comes from the same
+   token, and Windows composites that block without alpha — so the buttons stay
+   flat while the strip picks up the pond. That seam is accepted deliberately:
+   the alternative is an opaque bar, and the bar is the largest surface in the
+   window. The strip's tint is kept close to the buttons' fill so the seam reads
+   as a material edge rather than as a mistake.
 
    The pseudo-element owns no children, so the containing-block hazard that
    forced the panels onto \`::before\` does not apply, and the drag region is
    untouched. */
 html[data-windows-titlebar] body [data-slot="root"] > div::before {
-  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 58%, transparent);
+  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 62%, transparent);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
   backdrop-filter: blur(22px) saturate(150%);
 }
@@ -2829,7 +2886,7 @@ const { buildStyles } = __m_styles;
  */
 
 /** Layer identity for the token override; also the plugin's display id. */
-const ID = '@local/dsh-cngtn-pond';
+const ID = '@cngtn/dsh-cngtn-pond';
 
 /** Required Client services: the theme registry owns the token layer. */
 const inject = ['theme'];
@@ -3147,6 +3204,151 @@ function exposeApi() {
 }
 
 /**
+ * The bundle's own settings page.
+ *
+ * The Plugins page dispatches \`plugins.bundle.config\` with the bundle's package
+ * name as the key, and renders whatever is registered there between the bundle's
+ * description and its rows. Registering is what makes the pond settings appear
+ * on the marketplace/plugins page rather than only in a floating panel.
+ *
+ * The form is the shell's own \`SettingsFormModel\`, driven by the Host-backed
+ * config scope (\`ctx.configForms.get('cngtn-pond')\`), so Save, Discard, the dirty
+ * flag and the write path behave like the shipped bundle forms. Nothing here
+ * invents a settings transport.
+ *
+ * Every piece is optional: if \`configForms\` or the primitives are unavailable,
+ * the theme keeps working and the floating Pond panel plus the console API
+ * remain.
+ */
+function registerBundleConfig(ctx) {
+  if (typeof ctx.inject !== 'function') return;
+  try {
+    ctx.inject(['slots', 'configForms'], (child) => {
+      let React;
+      let primitives;
+      try {
+        React = require('react');
+        primitives = require('@deepseek-ai/dsh-client-ui-primitives');
+      } catch (error) {
+        console.warn('[cngtn-pond] settings form unavailable:', error && error.message);
+        return;
+      }
+      const { SettingsForm, SettingsFormModel, settingsNumberField, settingsTextField } = primitives;
+      if (!SettingsForm || !SettingsFormModel || !settingsNumberField || !settingsTextField) {
+        console.warn('[cngtn-pond] settings primitives missing; using the floating panel only');
+        return;
+      }
+
+      const scope = child.configForms.get('cngtn-pond');
+      const model = new SettingsFormModel(scope, [
+        {
+          ...settingsNumberField('fish'),
+          parse: (text) => {
+            const value = Number(text.trim());
+            return Number.isInteger(value) && value >= 3 && value <= 12
+              ? { kind: 'set', value }
+              : undefined;
+          },
+        },
+        {
+          ...settingsTextField('palette'),
+          parse: (text) => {
+            const value = text.trim();
+            return PALETTE_PRESETS.includes(value) ? { kind: 'set', value } : undefined;
+          },
+        },
+      ]);
+
+      const state = model.bind(() => ({
+        ...model.shell(),
+        fish: model.field('fish'),
+        palette: model.field('palette'),
+      }));
+
+      child.effect(() => () => model.dispose(), 'cngtn-pond: config form');
+
+      const PALETTE_HELP = 'mixed | warm | cool | mono';
+
+      function PondConfig(props) {
+        const view = props && props.view;
+        const snapshot = React.useSyncExternalStore
+          ? React.useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
+          : state.getSnapshot();
+
+        if (view === 'summary') {
+          return React.createElement(
+            'span',
+            null,
+            (snapshot.fish && snapshot.fish.text ? snapshot.fish.text : '—') +
+              ' fish · ' +
+              (snapshot.palette && snapshot.palette.text ? snapshot.palette.text : 'mixed')
+          );
+        }
+
+        const actions = model.actions();
+        return React.createElement(
+          SettingsForm,
+          {
+            labels: {
+              title: 'Pond',
+              description: 'How many koi swim behind the shell, and which colours they carry.',
+              save: 'Save',
+              discard: 'Discard',
+              reset: 'Reset',
+            },
+            shell: snapshot,
+            onSave: actions.save,
+            onDiscard: actions.discard,
+          },
+          React.createElement(
+            'label',
+            { style: { display: 'block', marginBottom: '10px' } },
+            React.createElement('span', { style: { display: 'block', marginBottom: '4px' } }, 'Fish (3–12)'),
+            React.createElement('input', {
+              type: 'number',
+              min: 3,
+              max: 12,
+              step: 1,
+              value: snapshot.fish ? snapshot.fish.text : '',
+              onChange: (event) => actions.edit('fish', event.target.value),
+              style: { width: '100%', padding: '4px 8px', borderRadius: '6px' },
+            })
+          ),
+          React.createElement(
+            'label',
+            { style: { display: 'block' } },
+            React.createElement('span', { style: { display: 'block', marginBottom: '4px' } }, 'Colour'),
+            React.createElement('input', {
+              type: 'text',
+              value: snapshot.palette ? snapshot.palette.text : '',
+              onChange: (event) => actions.edit('palette', event.target.value),
+              style: { width: '100%', padding: '4px 8px', borderRadius: '6px' },
+            }),
+            React.createElement(
+              'span',
+              { style: { display: 'block', marginTop: '4px', opacity: 0.7, fontSize: '12px' } },
+              PALETTE_HELP
+            )
+          )
+        );
+      }
+
+      child.slots.inject('plugins.bundle.config', () =>
+        child.slots.register(
+          {
+            name: 'plugins.bundle.config',
+            key: '@cngtn/dsh-cngtn-pond',
+          },
+          PondConfig
+        )
+      );
+    });
+  } catch (error) {
+    console.warn('[cngtn-pond] bundle config unavailable:', error && error.message);
+  }
+}
+
+/**
  * A "Pond" button in the Settings header. Optional on purpose: if the slot
  * service is missing or the contract changes, the theme keeps working and the
  * console API plus \`config\` in the patch row remain.
@@ -3201,6 +3403,7 @@ function apply(ctx, config) {
     ctx.effect(() => theme.overrideTokens(ID, tokens), 'cngtn-pond: token layer');
     ctx.effect(() => injectStyles(), 'cngtn-pond: stylesheet');
     exposeApi();
+    registerBundleConfig(ctx);
     installSettingsButton(ctx);
   } catch (error) {
     console.error('[cngtn-pond] apply failed:', error && (error.stack || error.message));
