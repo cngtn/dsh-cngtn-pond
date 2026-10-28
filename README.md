@@ -106,8 +106,17 @@ same logic as a red one instead of being a recoloured copy.
 its 280px track; the cell gains 8px of padding so the card is drawn *inside* it
 (264px wide) rather than shrinking the track — the resize handle and the centre
 column stay exactly where the shell put them. The card has a 14px radius on all
-four corners, a hairline outline, the theme's one panel shadow, and the same
-frosted fill as the other panels, so the pond reads through it and around it.
+four corners, a hairline outline, the same frosted fill as the other panels, and
+a **progressive shadow**: seven stacked layers whose blur grows geometrically
+(1, 2, 4, 8, 16, 28, 44px) at low alpha, plus a 0.5px contact ring. One wide
+shadow has a single edge and reads as a band; the stack falls off the way a real
+occluder does. Paper and ink get separate alphas, because a black shadow on a
+dark page is nearly invisible.
+
+The shadow needed the column to stop clipping: it had `overflow: hidden`, which
+cut the shadow to a 12px band at the column edge. The column is now
+`overflow: visible` and the rows are clipped by the inner root instead, whose
+box is exactly the card's box.
 
 Collapsed, the column is an 18px rail holding one button, so the card styling is
 dropped and the rail stays bare.
