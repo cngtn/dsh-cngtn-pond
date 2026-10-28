@@ -100,6 +100,24 @@ Each fish carries its own pigment, and the renderer derives a six-stop ramp from
 it — shadowed at the flanks, lit across the back — so a gold koi is shaded by the
 same logic as a red one instead of being a recoloured copy.
 
+## Layout
+
+**The sidebar floats.** The frame is a three-column grid, and the sidebar keeps
+its 280px track; the cell gains 8px of padding so the card is drawn *inside* it
+(264px wide) rather than shrinking the track — the resize handle and the centre
+column stay exactly where the shell put them. The card has a 14px radius on all
+four corners, a hairline outline, the theme's one panel shadow, and the same
+frosted fill as the other panels, so the pond reads through it and around it.
+
+Collapsed, the column is an 18px rail holding one button, so the card styling is
+dropped and the rail stays bare.
+
+**The titlebar is transparent.** No fill, no blur: the pond runs to the top edge
+of the window and the caption floats over the water. The native minimise /
+maximise / close buttons stay an opaque block in the top-right corner — Windows
+composites their overlay without alpha, so no theme can make them transparent.
+That block is the one place where the chrome and the water disagree.
+
 ## Install
 
 ```powershell
