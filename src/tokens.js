@@ -370,6 +370,39 @@ set(
   `var(--dsw-elevation-stroke), 0 10px 24px ${INK.shadowDeep}`
 );
 
+/**
+ * The floating-panel shadow: seven layers, each wider and fainter than the last.
+ *
+ * A single \`0 6px 16px\` shadow has one edge, and at 16px it reads as a hard band
+ * under a card. Stacking layers whose blur grows geometrically — 1, 2, 4, 8, 16,
+ * 28, 44 — and whose alpha stays low produces the continuous falloff of a real
+ * occluder: dense where the card meets the surface, gone by the outer edge.
+ *
+ * The first layer is a 0.5px contact ring, not a shadow: it is what stops the
+ * card from looking pasted on, and it survives at 1× DPI where sub-pixel
+ * shadows disappear.
+ *
+ * Ink needs more alpha than paper to read at all — a black shadow on a dark page
+ * is nearly invisible — so the two ramps are tuned separately rather than
+ * sharing one alpha.
+ */
+const cardShadow = (soft, deep) =>
+  [
+    '0 0 0 0.5px ' + soft,
+    '0 1px 2px ' + soft,
+    '0 3px 6px ' + soft,
+    '0 6px 12px ' + deep,
+    '0 12px 22px ' + deep,
+    '0 20px 34px ' + soft,
+    '0 32px 52px ' + soft,
+  ].join(', ');
+
+set(
+  '--cngtn-shadow-card',
+  cardShadow('rgba(38, 37, 35, 0.045)', 'rgba(38, 37, 35, 0.055)'),
+  cardShadow('rgba(0, 0, 0, 0.22)', 'rgba(0, 0, 0, 0.30)')
+);
+
 // ── Focus ─────────────────────────────────────────────────────────────────
 pair('--dsw-focus-ring-color', 'focus');
 set('--dsw-focus-ring-width', '2px', '2px');

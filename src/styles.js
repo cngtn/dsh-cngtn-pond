@@ -208,8 +208,11 @@ html body [data-composer-card]::before {
    The shadow is what makes the card read as *above* the water rather than cut
    out of it, and it is the only shadow the theme gives a panel. */
 html body [data-slot="root"] > div > div:nth-child(1) {
-  padding: 8px 8px 14px 14px;
-  overflow: hidden;
+  padding: 10px 12px 20px 18px;
+  /* Visible, so the card's shadow can fall outside the column. Clipping the
+     column was what kept the shadow to a 12px band at its edge. The rows are
+     clipped by the inner root instead (below), which is the same box. */
+  overflow: visible;
 }
 
 /* The card *is* the pseudo-element, and it is inset from the column on all four
@@ -221,10 +224,11 @@ html body [data-slot="root"] > div > div:nth-child(1) {
    or a shadow on the column would sit at x=0 and read as a seam against the
    screen edge instead of as a floating edge. */
 html body [data-slot="root"] > div > div:nth-child(1)::before {
-  inset: 8px 8px 14px 14px;
+  inset: 10px 12px 20px 18px;
   border-radius: 14px;
   border: 0.5px solid var(--dsw-alias-border-l1);
-  box-shadow: var(--dsw-shadow-lv3);
+  /* Seven stacked layers, not one: see \`--cngtn-shadow-card\` in tokens.js. */
+  box-shadow: var(--cngtn-shadow-card);
   background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 55%, transparent);
 }
 
@@ -233,6 +237,12 @@ html body [data-slot="root"] > div > div:nth-child(1)::before {
    shell marks the frame, not the column, so the rule reaches down from there. */
 html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1) {
   padding: 0;
+  overflow: visible;
+}
+
+html body [data-slot="root"] > div[data-sidebar-collapsed] [data-slot="sidebar"] > div {
+  border-radius: 0;
+  overflow: visible;
 }
 
 html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1)::before {
@@ -243,11 +253,16 @@ html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1)::b
   background-color: transparent;
 }
 
-/* The inner root is a fixed-width box; let it follow the padded cell. */
+/* The inner root is a fixed-width box; let it follow the padded cell, and give
+   it the card's shape so rows clip to the rounded corners. Its box is exactly
+   the card's box — the column's padding is the inset — so the two radii agree
+   without a second measurement. */
 html body [data-slot="sidebar"] > div {
   width: 100% !important;
   max-width: 100%;
   box-sizing: border-box;
+  border-radius: 14px;
+  overflow: hidden;
 }
 
 /* The status strip is a 1px rule, not a surface, so it stays paper and the rule

@@ -2297,6 +2297,39 @@ set(
   `var(--dsw-elevation-stroke), 0 10px 24px ${INK.shadowDeep}`
 );
 
+/**
+ * The floating-panel shadow: seven layers, each wider and fainter than the last.
+ *
+ * A single \`0 6px 16px\` shadow has one edge, and at 16px it reads as a hard band
+ * under a card. Stacking layers whose blur grows geometrically — 1, 2, 4, 8, 16,
+ * 28, 44 — and whose alpha stays low produces the continuous falloff of a real
+ * occluder: dense where the card meets the surface, gone by the outer edge.
+ *
+ * The first layer is a 0.5px contact ring, not a shadow: it is what stops the
+ * card from looking pasted on, and it survives at 1× DPI where sub-pixel
+ * shadows disappear.
+ *
+ * Ink needs more alpha than paper to read at all — a black shadow on a dark page
+ * is nearly invisible — so the two ramps are tuned separately rather than
+ * sharing one alpha.
+ */
+const cardShadow = (soft, deep) =>
+  [
+    '0 0 0 0.5px ' + soft,
+    '0 1px 2px ' + soft,
+    '0 3px 6px ' + soft,
+    '0 6px 12px ' + deep,
+    '0 12px 22px ' + deep,
+    '0 20px 34px ' + soft,
+    '0 32px 52px ' + soft,
+  ].join(', ');
+
+set(
+  '--cngtn-shadow-card',
+  cardShadow('rgba(38, 37, 35, 0.045)', 'rgba(38, 37, 35, 0.055)'),
+  cardShadow('rgba(0, 0, 0, 0.22)', 'rgba(0, 0, 0, 0.30)')
+);
+
 // ── Focus ─────────────────────────────────────────────────────────────────
 pair('--dsw-focus-ring-color', 'focus');
 set('--dsw-focus-ring-width', '2px', '2px');
@@ -2640,8 +2673,11 @@ html body [data-composer-card]::before {
    The shadow is what makes the card read as *above* the water rather than cut
    out of it, and it is the only shadow the theme gives a panel. */
 html body [data-slot="root"] > div > div:nth-child(1) {
-  padding: 8px 8px 14px 14px;
-  overflow: hidden;
+  padding: 10px 12px 20px 18px;
+  /* Visible, so the card's shadow can fall outside the column. Clipping the
+     column was what kept the shadow to a 12px band at its edge. The rows are
+     clipped by the inner root instead (below), which is the same box. */
+  overflow: visible;
 }
 
 /* The card *is* the pseudo-element, and it is inset from the column on all four
@@ -2653,10 +2689,11 @@ html body [data-slot="root"] > div > div:nth-child(1) {
    or a shadow on the column would sit at x=0 and read as a seam against the
    screen edge instead of as a floating edge. */
 html body [data-slot="root"] > div > div:nth-child(1)::before {
-  inset: 8px 8px 14px 14px;
+  inset: 10px 12px 20px 18px;
   border-radius: 14px;
   border: 0.5px solid var(--dsw-alias-border-l1);
-  box-shadow: var(--dsw-shadow-lv3);
+  /* Seven stacked layers, not one: see \`--cngtn-shadow-card\` in tokens.js. */
+  box-shadow: var(--cngtn-shadow-card);
   background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 55%, transparent);
 }
 
@@ -2665,6 +2702,12 @@ html body [data-slot="root"] > div > div:nth-child(1)::before {
    shell marks the frame, not the column, so the rule reaches down from there. */
 html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1) {
   padding: 0;
+  overflow: visible;
+}
+
+html body [data-slot="root"] > div[data-sidebar-collapsed] [data-slot="sidebar"] > div {
+  border-radius: 0;
+  overflow: visible;
 }
 
 html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1)::before {
@@ -2675,11 +2718,16 @@ html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1)::b
   background-color: transparent;
 }
 
-/* The inner root is a fixed-width box; let it follow the padded cell. */
+/* The inner root is a fixed-width box; let it follow the padded cell, and give
+   it the card's shape so rows clip to the rounded corners. Its box is exactly
+   the card's box — the column's padding is the inset — so the two radii agree
+   without a second measurement. */
 html body [data-slot="sidebar"] > div {
   width: 100% !important;
   max-width: 100%;
   box-sizing: border-box;
+  border-radius: 14px;
+  overflow: hidden;
 }
 
 /* The status strip is a 1px rule, not a surface, so it stays paper and the rule
