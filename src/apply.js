@@ -91,35 +91,49 @@ const diag = {
 /**
  * Apply a settings patch.
  *
- * When a Host config scope is reachable it is the **single writer**: the patch
- * goes there, and the subscription folds the accepted value back into the pond.
- * Applying locally as well would race that round-trip — with two changes in
- * flight, a stale fold could land last and win, which is exactly what a rapid
- * palette cycle used to do.
+ * Two rules, and both were learned the hard way:
  *
- * Without a Host scope (a bare web profile, or the settings service missing) the
- * patch is applied directly, so the panel and console still work.
+ * 1. **The engine follows the user immediately.** A slider drag must not wait
+ *    for a Host round-trip, and the panel must never show a value the pond is
+ *    not drawing.
+ * 2. **The Host write is debounced and latest-wins.** Firing one write per
+ *    keystroke queued revisions that collided, and the fold from a superseded
+ *    write could land last — a rapid palette cycle used to end on whichever
+ *    value happened to win the race.
+ *
+ * The fold still applies an incoming value, but only when it differs from what
+ * the engine already draws, so a debounced write echoing back is a no-op instead
+ * of a re-seed.
  */
-function applySettings(patch) {
-  const next = normalizeSettings({ ...readStored(), ...patch });
-  persistSettings(next);
+let hostWriteTimer = 0;
 
-  let wroteToHost = false;
-  if (hostScope !== null) {
+function scheduleHostWrite() {
+  if (hostScope === null) return;
+  if (hostWriteTimer !== 0) clearTimeout(hostWriteTimer);
+  hostWriteTimer = setTimeout(() => {
+    hostWriteTimer = 0;
+    if (hostScope === null) return;
+    const latest = normalizeSettings(readStored());
     try {
       const snapshot = hostScope.getSnapshot();
-      if (snapshot && snapshot.writable) {
-        for (const field of Object.keys(patch)) {
-          if (field in next) hostScope.set(field, next[field]);
-        }
-        wroteToHost = true;
+      if (!snapshot || !snapshot.writable) return;
+      // Only the fields that actually differ, so an unchanged document is not
+      // rewritten on every interaction.
+      for (const field of ['fish', 'young', 'palette']) {
+        const current = snapshot.value ? snapshot.value[field] : undefined;
+        if (current !== latest[field]) hostScope.set(field, latest[field]);
       }
     } catch (error) {
       console.warn('[cngtn-pond] host write failed:', error && error.message);
     }
-  }
+  }, 250);
+}
 
-  if (!wroteToHost) applyToEngine(next);
+function applySettings(patch) {
+  const next = normalizeSettings({ ...readStored(), ...patch });
+  persistSettings(next);
+  applyToEngine(next);
+  scheduleHostWrite();
   refreshPanel();
   return next;
 }
