@@ -82,21 +82,26 @@ body [data-slot="root"] > div {
    is the frame's \`::before\`: 40px tall, \`-webkit-app-region: drag\`, painted
    with \`--dsw-specific-sidebar-fill\`.
 
-   It is frosted, like the panels below it. Electron draws the minimise /
-   maximise / close buttons itself in a block whose colour comes from the same
-   token, and Windows composites that block without alpha — so the buttons stay
-   flat while the strip picks up the pond. That seam is accepted deliberately:
-   the alternative is an opaque bar, and the bar is the largest surface in the
-   window. The strip's tint is kept close to the buttons' fill so the seam reads
-   as a material edge rather than as a mistake.
+   It is **transparent**: no fill, no blur. The pond runs all the way to the top
+   edge of the window, and the caption floats over the water like the rest of the
+   interface.
 
-   The pseudo-element owns no children, so the containing-block hazard that
-   forced the panels onto \`::before\` does not apply, and the drag region is
-   untouched. */
+   Two consequences, both accepted deliberately:
+
+   - The minimise / maximise / close buttons are drawn by Electron in a block
+     whose colour comes from the same token, and Windows composites that block
+     without alpha. They stay an opaque block in the top-right corner; nothing in
+     a theme can change that.
+   - The caption text and the menu labels sit directly on moving glyphs. They
+     keep their own hover fills and the label colours, which is enough to read
+     them, but there is no paper behind them.
+
+   The drag region is untouched: the pseudo-element owns no children, so it
+   cannot become a containing block for anything. */
 html[data-windows-titlebar] body [data-slot="root"] > div::before {
-  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 62%, transparent);
-  -webkit-backdrop-filter: blur(22px) saturate(150%);
-  backdrop-filter: blur(22px) saturate(150%);
+  background-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* ── Transparency chain ───────────────────────────────────────────────────
@@ -182,9 +187,44 @@ html body [data-composer-card]::before {
   background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 34%, transparent);
 }
 
-/* The sidebar keeps its hairline, drawn above the glass. */
+/* ── The sidebar, as a floating card ──────────────────────────────────────
+   The frame is a three-column grid (sidebar / centre / right), and the sidebar
+   column is its first cell. Rather than margin the cell — which would leave the
+   grid's 280px track half empty and desynchronise the resize handle — the cell
+   keeps its track and gains **padding**, so the card is drawn inside it:
+
+     column 280px  →  card 264px, inset 8px on every side
+
+   The column's own fill is already transparent (above), and its \`::before\`
+   carries the glass. Rounding both the column and that pseudo-element gives the
+   card its corners; \`overflow: hidden\` clips the sidebar's own rows to them, so
+   a hover fill or a long workspace name cannot spill past the radius.
+
+   The inner sidebar root is a fixed 280px box, which would overflow the padded
+   cell; it is widened to 100% so the rows reflow into the card. That is the one
+   structural assumption here — if a future build drops the fixed width, the
+   override is a no-op.
+
+   The shadow is what makes the card read as *above* the water rather than cut
+   out of it, and it is the only shadow the theme gives a panel. */
 html body [data-slot="root"] > div > div:nth-child(1) {
-  border-right: 1px solid var(--dsw-alias-border-l1);
+  padding: 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  box-shadow: var(--dsw-shadow-lv3);
+}
+
+html body [data-slot="root"] > div > div:nth-child(1)::before {
+  border-radius: 14px;
+  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 55%, transparent);
+}
+
+/* The inner root is a fixed-width box; let it follow the padded cell. */
+html body [data-slot="sidebar"] > div {
+  width: 100% !important;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* The status strip is a 1px rule, not a surface, so it stays paper and the rule
