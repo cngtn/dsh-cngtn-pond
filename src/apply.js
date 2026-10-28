@@ -64,6 +64,13 @@ function persistSettings(next) {
 /** The live engine, so the panel and the console API can retune it in place. */
 let activeEngine = null;
 
+/**
+ * The Host-backed config scope for this bundle, when one is reachable. It is the
+ * source of truth: the plugin page's form writes here, and the pond follows it.
+ * `localStorage` remains a cache and the fallback when no Host scope exists.
+ */
+let hostScope = null;
+
 /** What the settings wiring managed to reach; surfaced by `cngtnPond.diag()`. */
 const diag = {
   slots: false,
@@ -72,6 +79,7 @@ const diag = {
   formModel: false,
   bundleConfigRegistered: false,
   injectCalled: false,
+  hostScope: false,
   injectCallbackRan: false,
   settingsButtonRegistered: false,
   notes: [],
@@ -81,15 +89,78 @@ const diag = {
 function applySettings(patch) {
   const next = normalizeSettings({ ...readStored(), ...patch });
   persistSettings(next);
-  if (activeEngine !== null) {
+  applyToEngine(next);
+  // Write through the Host so the plugin page's form and the floating panel
+  // never disagree. Fire and forget: the subscription below re-applies the
+  // accepted value, and a rejected write simply leaves the cached one in place.
+  if (hostScope !== null) {
     try {
-      activeEngine.setOptions(next);
+      const snapshot = hostScope.getSnapshot();
+      if (snapshot && snapshot.writable) {
+        for (const [field, value] of Object.entries(patch)) {
+          if (field in next) hostScope.set(field, next[field]);
+        }
+      }
     } catch (error) {
-      console.error('[cngtn-pond] settings failed:', error && error.message);
+      console.warn('[cngtn-pond] host write failed:', error && error.message);
     }
   }
   refreshPanel();
   return next;
+}
+
+/** Push a normalized settings object into the live engine. */
+function applyToEngine(next) {
+  if (activeEngine === null) return;
+  try {
+    activeEngine.setOptions(next);
+  } catch (error) {
+    console.error('[cngtn-pond] settings failed:', error && error.message);
+  }
+}
+
+/**
+ * Follow the Host config scope.
+ *
+ * The plugin page's form saves through the Host, which is what the config
+ * document is for; without this subscription the save would be recorded and the
+ * pond would keep drawing the old school until a restart. Every ready snapshot
+ * is folded into the cache and applied, so the form, the panel and the console
+ * API all describe the same pond.
+ */
+function connectHostSettings(ctx) {
+  let configForms;
+  try {
+    configForms = typeof ctx.get === 'function' ? ctx.get('configForms') : undefined;
+  } catch {
+    return;
+  }
+  if (!configForms || typeof configForms.get !== 'function') return;
+
+  try {
+    const scope = configForms.get('cngtn-pond');
+    hostScope = scope;
+    diag.hostScope = true;
+
+    const fold = () => {
+      try {
+        const snapshot = scope.getSnapshot();
+        if (!snapshot || snapshot.status !== 'ready' || !snapshot.value) return;
+        const next = normalizeSettings({ ...readStored(), ...snapshot.value });
+        persistSettings(next);
+        applyToEngine(next);
+        refreshPanel();
+      } catch (error) {
+        diag.notes.push('fold: ' + (error && error.message));
+      }
+    };
+
+    ctx.effect(() => scope.subscribe(fold), 'cngtn-pond: host config');
+    fold();
+  } catch (error) {
+    diag.notes.push('host scope: ' + (error && error.message));
+    console.warn('[cngtn-pond] host config unavailable:', error && error.message);
+  }
 }
 
 /**
@@ -582,6 +653,10 @@ function installSettingsButton(ctx) {
 function apply(ctx, config) {
   try {
     const theme = ctx.theme;
+    // The Host config is the source of truth; the cache and the patch defaults
+    // are only fallbacks. Connecting first means the very first seed already
+    // uses the saved school.
+    connectHostSettings(ctx);
     const settings = normalizeSettings({ ...(config ?? {}), ...readStored() });
     ctx.effect(() => mountPond(settings), 'cngtn-pond: koi pond');
     ctx.effect(() => theme.overrideTokens(ID, tokens), 'cngtn-pond: token layer');
