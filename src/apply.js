@@ -71,6 +71,8 @@ const diag = {
   primitives: false,
   formModel: false,
   bundleConfigRegistered: false,
+  injectCalled: false,
+  injectCallbackRan: false,
   settingsButtonRegistered: false,
   notes: [],
 };
@@ -489,13 +491,22 @@ function registerBundleConfig(ctx) {
       );
     }
 
-    slots.inject('plugins.bundle.config', () =>
-      slots.register(
-        { name: 'plugins.bundle.config', key: '@cngtn/dsh-cngtn-pond' },
-        PondConfig
-      )
-    );
-    diag.bundleConfigRegistered = true;
+    diag.injectCalled = true;
+    slots.inject('plugins.bundle.config', () => {
+      diag.injectCallbackRan = true;
+      try {
+        const dispose = slots.register(
+          { name: 'plugins.bundle.config', key: '@cngtn/dsh-cngtn-pond' },
+          PondConfig
+        );
+        diag.bundleConfigRegistered = true;
+        return dispose;
+      } catch (error) {
+        diag.notes.push('register threw: ' + (error && error.message));
+        console.warn('[cngtn-pond] slot register failed:', error && error.message);
+        return () => {};
+      }
+    });
   } catch (error) {
     diag.notes.push('register: ' + (error && error.message));
     console.warn('[cngtn-pond] bundle config registration failed:', error && error.message);
