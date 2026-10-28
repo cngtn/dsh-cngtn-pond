@@ -73,7 +73,12 @@ function mergeNearby(boxes) {
 export class PondEngine {
   constructor(canvas, options = {}) {
     this.canvas = canvas;
-    this.world = new World({ budget: options.budget ?? 0.7 });
+    this.world = new World({
+      budget: options.budget ?? 0.7,
+      fish: options.fish,
+      young: options.young,
+      palette: options.palette,
+    });
     this.renderer = new KoiRenderer(canvas, { maxCells: options.maxCells ?? 26000 });
     this.raf = 0;
     this.last = 0;
@@ -109,6 +114,24 @@ export class PondEngine {
     this.setTheme(this.readIsLight());
     this.resize();
     this.schedule();
+  }
+
+  /**
+   * Change the school without remounting: population, palette, young koi.
+   * The world re-seeds, which is what makes "how many fish" mean what it says.
+   */
+  setOptions(next = {}) {
+    const applied = this.world.setOptions(next);
+    // A re-seed gives the fish new identities, so the cached markings and ramps
+    // are dead weight; clearing keeps a long session's memory flat.
+    if (this.renderer.markingCache) this.renderer.markingCache.clear();
+    this.measureContent();
+    return applied;
+  }
+
+  /** Current pond settings, for a settings control to render. */
+  getOptions() {
+    return this.world.getOptions();
   }
 
   destroy() {

@@ -3,7 +3,6 @@
  *
  * A token can restate a colour, a radius, a shadow. It cannot:
  *
- *  - load a webfont (Geist Mono is vendored, because Windows does not have it);
  *  - place the pond's canvas in the paint order;
  *  - make the shell's frame transparent so the water shows through it;
  *  - build a frosted panel, because the blur has to live on a pseudo-element;
@@ -24,17 +23,8 @@
  * every purely stylistic rule stays flag-free.
  */
 
-// Geist Mono 400 and Geist Sans 400/500, base64 WOFF2. SIL Open Font License
-// 1.1; the licence text ships beside the sources in `fonts/OFL.txt`.
-export function buildStyles(fontCss) {
+export function buildStyles() {
   return `
-/* ── Fonts ────────────────────────────────────────────────────────────────
-   The site sets everything in Geist Mono. It is not installed on Windows, so
-   the bundle carries the same WOFF2 the site serves, and Cascadia Code NF
-   follows it in the stack so the pond's glyph grid and the interface share
-   metrics before the webfont settles. */
-${fontCss}
-
 /* ── Paint order ──────────────────────────────────────────────────────────
    The shell sets \`body { isolation: isolate }\`, which makes the body a stacking
    context. A negative z-index inside it therefore paints *behind the body's own

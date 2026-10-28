@@ -124,6 +124,17 @@ if (layer) {
   check(blur && /blur\(/.test(blur.light), 'menus are frosted (blur published as a token)');
   const fill = layer.tokens['--dsw-menu-surface-fill'];
   check(fill && /transparent|color-mix/.test(fill.light), 'menu fill is translucent, not opaque');
+
+  // The theme must not impose a font: those tokens are the built-in stacks that
+  // sit behind the user's choice in Settings, so overriding them would pin the
+  // whole GUI to one typeface.
+  for (const name of [
+    '--dsh-font-family-text-default',
+    '--dsh-font-family-code-default',
+    '--dsw-font-family-brand',
+  ]) {
+    check(!(name in layer.tokens), name + ' is left to the shell and the user');
+  }
 }
 
 // The stylesheet is a string inside the bundle; these checks prove the two

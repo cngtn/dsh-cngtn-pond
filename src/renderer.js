@@ -117,36 +117,106 @@ function inPatch(m, s, vn, wobble) {
   return ((s - m.s) / m.rs) ** 2 + ((vn - m.v) / m.rv) ** 2 < 1 + wobble;
 }
 
+/** '#rrggbb' to [r, g, b]. */
+function hexToRgb(hex) {
+  const v = parseInt(hex.slice(1), 16);
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+}
+
+/**
+ * A six-stop ramp for one pigment, from shadowed to sunlit.
+ *
+ * The original theme had a single hard-coded vermilion ramp. A pond with more
+ * than one colour needs the same *shape* of ramp for every pigment, so the stops
+ * are derived from the accent itself: darken toward the page colour for the
+ * shadowed end, lift toward the water colour for the lit end. That keeps every
+ * fish shaded by the same logic, and stops a gold koi from reading as a red one
+ * with a different hue.
+ */
+function rampFor(accent, palette) {
+  const base = hexToRgb(accent);
+  const shadow = palette.bg;
+  const light = palette.water;
+  return [
+    mix(base, shadow, 0.55),
+    mix(base, shadow, 0.3),
+    base,
+    mix(base, light, 0.18),
+    mix(base, light, 0.38),
+    mix(base, light, 0.58),
+  ];
+}
+
 /**
  * Each koi gets a fixed set of markings, seeded by its id, so every fish carries
- * a clear pattern: kohaku a red head and two or three red saddles on white,
- * sanke the same plus small black spots, tancho a single red disc on the crown.
+ * a clear pattern. The varieties are the ones a real pond is stocked with:
+ *
+ *  - kohaku  white, with an accent head and two or three saddles
+ *  - sanke   kohaku plus small black spots
+ *  - tancho  white, with a single accent disc on the crown
+ *  - showa   black back, with accent and white patches
+ *  - ogon    a single metallic colour, paler along the belly
+ *  - asagi   slate back, accent along the belly
+ *  - bekko   white, with black spots only
+ *
+ * \`base\` is what the body is where no patch applies; the lists are drawn over
+ * it. Keeping the pattern in body coordinates is what makes a fish look like it
+ * is swimming rather than like a texture sliding over it.
  */
 function koiMarkings(k) {
   const r = (j) => hash3(k.id, j, 41);
-  if (k.variety === 'tancho') return { red: [{ s: 0.11, v: 0, rs: 0.05, rv: 0.055 }], black: [] };
+  const saddles = (count, start = 0.25, spanTotal = 0.42) => {
+    const out = [];
+    const span = spanTotal / count;
+    for (let j = 0; j < count; j++) {
+      out.push({
+        s: start + span * (j + 0.5) + (r(10 + j) - 0.5) * span * 0.3,
+        v: (r(20 + j) - 0.5) * 0.05,
+        rs: span * (0.32 + r(30 + j) * 0.12),
+        rv: 0.09 + r(40 + j) * 0.05,
+      });
+    }
+    return out;
+  };
+  const spots = (count, spread = 0.44) => {
+    const out = [];
+    for (let j = 0; j < count; j++) {
+      out.push({ s: 0.24 + r(60 + j) * spread, v: (r(70 + j) - 0.5) * 0.16, rs: 0.022, rv: 0.026 });
+    }
+    return out;
+  };
 
-  const red = [];
-  if (r(0) < 0.75) red.push({ s: 0.1, v: (r(1) - 0.5) * 0.03, rs: 0.055 + r(2) * 0.03, rv: 0.11 });
-  const saddles = 2 + Math.floor(r(3) * 2);
-  for (let j = 0; j < saddles; j++) {
-    const span = 0.42 / saddles;
-    red.push({
-      s: 0.25 + span * (j + 0.5) + (r(10 + j) - 0.5) * span * 0.3,
-      v: (r(20 + j) - 0.5) * 0.05,
-      rs: span * (0.32 + r(30 + j) * 0.12),
-      rv: 0.09 + r(40 + j) * 0.05,
-    });
-  }
-
-  const black = [];
-  if (k.variety === 'sanke') {
-    const spots = 4 + Math.floor(r(50) * 3);
-    for (let j = 0; j < spots; j++) {
-      black.push({ s: 0.24 + r(60 + j) * 0.44, v: (r(70 + j) - 0.5) * 0.16, rs: 0.022, rv: 0.026 });
+  switch (k.variety) {
+    case 'tancho':
+      return { base: 'white', accent: [{ s: 0.11, v: 0, rs: 0.05, rv: 0.055 }], black: [], white: [] };
+    case 'ogon':
+      return { base: 'accent', accent: [], black: [], white: [] };
+    case 'asagi':
+      return { base: 'slate', accent: [{ s: 0.5, v: 0, rs: 0.34, rv: 0.2 }], black: [], white: [] };
+    case 'bekko':
+      return { base: 'white', accent: [], black: spots(6, 0.5), white: [] };
+    case 'showa': {
+      const white = [];
+      const patches = 2 + Math.floor(r(40) * 2);
+      for (let j = 0; j < patches; j++) {
+        white.push({ s: 0.2 + r(80 + j) * 0.5, v: (r(90 + j) - 0.5) * 0.18, rs: 0.05, rv: 0.07 });
+      }
+      return { base: 'black', accent: saddles(2 + Math.floor(r(3) * 2)), black: [], white };
+    }
+    case 'sanke':
+      return {
+        base: 'white',
+        accent: saddles(2 + Math.floor(r(3) * 2)),
+        black: spots(4 + Math.floor(r(50) * 3)),
+        white: [],
+      };
+    default: {
+      const accent = [];
+      if (r(0) < 0.75) accent.push({ s: 0.1, v: (r(1) - 0.5) * 0.03, rs: 0.055 + r(2) * 0.03, rv: 0.11 });
+      accent.push(...saddles(2 + Math.floor(r(3) * 2)));
+      return { base: 'white', accent, black: [], white: [] };
     }
   }
-  return { red, black };
 }
 
 const packRgb = (c) => (c[0] << 16) | (c[1] << 8) | c[2];
@@ -395,28 +465,45 @@ export class KoiRenderer {
     );
   }
 
-  /** Skin colour for a body point, from the koi's own markings pinned to body coordinates. */
+  /**
+   * Skin kind for a body point, from the koi's own markings pinned to body
+   * coordinates. Returns a *kind* rather than a colour: the accent differs per
+   * fish, so the caller resolves it against that fish's ramp.
+   */
   skin(k, s, v, across) {
-    const p = this.palette;
     const vn = v / k.length;
-    // Belly edges and the tail stalk stay white on every variety, which frames
+    // Belly edges and the tail stalk stay pale on every variety, which frames
     // the markings.
-    if (across > 0.9 || s > 0.74) return p.white;
+    if (across > 0.9 || s > 0.74) return 'white';
     // Ragged edges, so patches read as painted markings rather than ellipses.
     const wobble = (valueNoise(s * 14 + k.id, vn * 30, k.id + 3) - 0.5) * 0.6;
     const markings = this.markings(k);
-    for (const m of markings.black) if (inPatch(m, s, vn, wobble)) return p.black;
-    for (const m of markings.red) if (inPatch(m, s, vn, wobble)) return p.red;
-    return p.white;
+    for (const m of markings.black) if (inPatch(m, s, vn, wobble)) return 'black';
+    for (const m of markings.white) if (inPatch(m, s, vn, wobble)) return 'white';
+    for (const m of markings.accent) if (inPatch(m, s, vn, wobble)) return 'accent';
+    return markings.base;
   }
 
+  /** Markings and ramp for one fish, cached by identity so a re-seed refreshes them. */
   markings(k) {
-    let m = this.markingCache.get(k.id);
+    const key = k.id + ':' + k.variety + ':' + k.accent;
+    let m = this.markingCache.get(key);
     if (!m) {
       m = koiMarkings(k);
-      this.markingCache.set(k.id, m);
+      this.markingCache.set(key, m);
     }
     return m;
+  }
+
+  /** The six-stop pigment ramp for one fish. */
+  ramp(k) {
+    const key = 'ramp:' + k.id + ':' + k.accent;
+    let r = this.markingCache.get(key);
+    if (!r) {
+      r = rampFor(k.accent, this.palette);
+      this.markingCache.set(key, r);
+    }
+    return r;
   }
 
   rasterizeKoi(k, t) {
@@ -574,19 +661,20 @@ export class KoiRenderer {
           const skin = this.skin(k, s, v, across);
           const facing = side * (0.6 * ty - 0.8 * tx) * across;
           const lum = clamp(0.22 + 0.5 * Math.sqrt(1 - across * across) + 0.18 * facing, 0, 1);
-          if (skin === palette.red) {
-            // Red patches run the full hi ramp: crimson in shadow, vermilion
-            // across the back, orange to amber where the light hits. Each koi
-            // leans a little redder or more orange, and a slow body-pinned noise
-            // varies the hue within a patch, like real pigment.
+          if (skin === 'accent') {
+            // Pigment patches run the full ramp: shadowed at the flanks, lit
+            // across the back. Each koi leans a little within its own hue, and a
+            // slow body-pinned noise varies it like real pigment.
             const lean = (hash3(k.id, 5, 17) - 0.5) * 0.3;
             const grain = (valueNoise(s * 9 + k.id, (v / L) * 18, k.id + 21) - 0.5) * 0.25;
             // A band of shine travels down the body, like light sliding over wet
             // scales.
             const sheen = Math.max(0, Math.sin(s * 11 - t * 1.8 + k.id) - 0.7) / 0.3;
-            tile = ramp(palette.hi, 0.15 + 0.8 * lum + lean + grain + sheen * 0.35);
+            tile = ramp(this.ramp(k), 0.15 + 0.8 * lum + lean + grain + sheen * 0.35);
           } else {
-            tile = mix(palette.bg, skin, tile0 + (tile1 - tile0) * lum);
+            const tone =
+              skin === 'black' ? palette.black : skin === 'slate' ? palette.slate : palette.white;
+            tile = mix(palette.bg, tone, tile0 + (tile1 - tile0) * lum);
           }
           if (hits === 5) {
             const sc = c + shadowDc;
@@ -602,7 +690,7 @@ export class KoiRenderer {
               rgb = shade(tile, palette.ink);
               // White skin is etched lightly so the red and black patches carry
               // the pattern.
-              if (skin === palette.white) alpha *= 0.6;
+              if (skin === 'white') alpha *= 0.6;
               // Scales glint on a staggered clock.
               const tick = Math.floor(t * 1.4 + (key % 997) / 97);
               if (hash3(key, tick, 7) < 0.03) tile = mix(tile, palette.bg, 0.45);

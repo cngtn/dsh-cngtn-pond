@@ -106,23 +106,17 @@ const set = (name, light, dark) => {
 const pair = (name, key) => set(name, PAPER[key], INK[key]);
 
 // ── Typography ────────────────────────────────────────────────────────────
-// The site sets everything in Geist Mono: headings, prose, nav, the pond's own
-// glyphs. The theme does the same, and only re-points the two *built-in* stacks,
-// never `--dsw-font-family` / `--ds-font-family-code` themselves — those resolve
-// as `<user list>, <built-in stack>`, so a font chosen in Settings still wins
-// while every default becomes monospace.
+// The theme deliberately does **not** set a font family.
 //
-// Geist Mono is vendored with the bundle (SIL OFL) because it is not installed
-// on Windows; Cascadia Code NF and Cascadia Mono follow it in the stack so the
-// pond and the interface share the same cell metrics even before the webfont
-// settles.
-const MONO =
-  '"Geist Mono", "Cascadia Code NF", "Cascadia Mono", Consolas, "SF Mono", ui-monospace, monospace';
-const SANS = '"Geist Sans", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif';
-
-set('--dsh-font-family-text-default', MONO, MONO);
-set('--dsh-font-family-code-default', MONO, MONO);
-set('--dsw-font-family-brand', SANS, SANS);
+// `--dsh-font-family-text-default` and `-code-default` are the built-in stacks
+// that sit *behind* the user's choice: overriding them replaces the fallback for
+// everyone, including a user who picked a font in Settings. An earlier revision
+// did exactly that and pinned the whole GUI to Geist Mono. The theme now leaves
+// both alone, so Settings → Appearance → Font decides, and the stock stacks
+// apply when nothing is chosen.
+//
+// The pond is unaffected: its glyph grid needs fixed advance, so the renderer
+// carries its own monospace stack rather than borrowing the interface's.
 
 // ── The type ramp ─────────────────────────────────────────────────────────
 // The site's ramp is unusually small and flat: 11/12/13/14/15/16 px, with the
@@ -502,4 +496,4 @@ for (const [name, light, dark] of statics) set(name, light, dark);
 set('--dsw-cngtn-build', '1.0.0', '1.0.0');
 set('--dsw-cngtn-pond', 'live', 'live');
 
-export { tokens, PAPER, INK, MONO, SANS };
+export { tokens, PAPER, INK };

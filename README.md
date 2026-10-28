@@ -1,7 +1,7 @@
 # cngtn Pond — a paper-and-ink theme for DeepSeek Harness
 
-A theme bundle for the DSH Web GUI: warm paper, warm ink, monospace type, hairline
-strokes, near-square corners — and a living ASCII koi pond behind the whole
+A theme bundle for the DSH Web GUI: warm paper, warm ink, hairline strokes,
+near-square corners — and a living ASCII koi pond behind the whole
 shell. The visual language is derived from a single-screen portfolio site; the
 analysis that produced it lives in
 [cngtn-analysis](https://github.com/cngtn/cngtn-analysis).
@@ -22,11 +22,64 @@ Three layers, registered through the sanctioned third-party-theme extension poin
 
 | Layer | What it does |
 |---|---|
-| **Tokens** (234 pairs) | Paper and ink surfaces, hairline strokes, a monospace type ramp, a tighter radius ladder, true (non-squircle) corners, opaque paper menus instead of acrylic, and the koi vermilion as the only accent. |
-| **Stylesheet** | The vendored Geist faces, the canvas layer and its paint order, the transparency chain that lets the water show through the shell's frame, and the site's underline-only link treatment. |
+| **Tokens** (230+ pairs) | Paper and ink surfaces, hairline strokes, a tighter radius ladder, true (non-squircle) corners, frosted menus instead of acrylic, and the koi vermilion as the only accent. **No font family**: Settings → Appearance → Font decides, and the stock stacks apply when nothing is chosen. |
+| **Stylesheet** | The canvas layer and its paint order, the transparency chain that lets the water show through the shell's frame, the frosted panels and Trajectory cards, and the site's underline-only link treatment. |
 | **Canvas** | The pond: koi with a 20-node spine, burst-and-coast tail beats, curiosity toward the pointer, food on click, startle on a fast swipe, depth dives, and an ASCII raster that etches every fish into the same glyph grid as the interface. |
 
 Disabling the plugin removes all three and the GUI returns to its stock design.
+
+## Tuning the pond
+
+Three settings, all live — no restart, no reload:
+
+| Setting | Range | What it does |
+|---|---|---|
+| **Fish** | 3–12 | The *total* school. Young koi are part of that number, never extra, so the slider is honest. |
+| **Colour** | Mixed / Warm / Cool / Ink only | Which pigments the fish draw from: the full range, reds-gold-yellow, blue-silver, or ink alone. |
+| **Two young koi** | on / off | The small fish that keep to the deep water, for a sense of depth. |
+
+Open the panel from **Settings → Pond**, or from the console:
+
+```js
+cngtnPond.open()                                  // the panel
+cngtnPond.set({ fish: 9, palette: 'warm' })       // apply and remember
+cngtnPond.get()                                   // { fish, young, palette }
+cngtnPond.list()                                  // the live school
+cngtnPond.reset()                                 // back to the defaults
+```
+
+Choices are stored in `localStorage` under `cngtn-pond:settings`, so they survive a
+restart. A profile can also ship a house style by setting the bundle's `config`
+in `cordis.patch.yml`:
+
+```yaml
+- insert:
+    - id: cngtn-pond
+      name: '@local/dsh-cngtn-pond'
+      config:
+        fish: 6
+        palette: warm
+        young: true
+```
+
+### Seven varieties
+
+The school is stocked the way a real pond is: mostly white-and-red, a few
+patterned, and one or two metallic or blue fish for depth.
+
+| Variety | Look |
+|---|---|
+| kohaku | white, accent head and two or three saddles |
+| sanke | kohaku plus small black spots |
+| tancho | white, a single accent disc on the crown |
+| showa | black back, accent and white patches |
+| ogon | one metallic colour, paler along the belly |
+| asagi | slate back, accent along the belly |
+| bekko | white, black spots only |
+
+Each fish carries its own pigment, and the renderer derives a six-stop ramp from
+it — shadowed at the flanks, lit across the back — so a gold koi is shaded by the
+same logic as a red one instead of being a recoloured copy.
 
 ## Why it looks the way it does
 
@@ -38,7 +91,7 @@ ink    #1a1917   cream  #fff7f0      (dark)
 ```
 
 Everything else is derived: `color-mix` of ink over paper for strokes and muted
-text, `Geist Mono` for every piece of type, 8px on cards and 6px on media, and a
+text, one typeface, 8px on cards and 6px on media, and a
 single soft shadow reserved for the one elevated surface.
 
 The one saturated colour is the koi. Its vermilion is step 3 of the pond's own
@@ -194,9 +247,10 @@ The rule: **copy the visual language, not the information architecture.**
 
 ## Licence
 
-The Geist faces in `fonts/` come from the site and are licensed under the SIL
-Open Font License 1.1; the licence text ships beside them as `fonts/OFL.txt`.
-Everything else in this bundle is original work for this theme.
+The theme sets no font family, so nothing is redistributed: typography comes
+from DSH's own stacks and the user's Settings choice. The `fonts/` directory is
+kept only as the source of the original reference; it is no longer inlined into
+`client.js`. Everything else in this bundle is original work.
 ## Verified on this machine
 
 Recorded on the DSH desktop app (0.2.1-rc.3, Windows 11) and the `web` profile,
@@ -211,7 +265,7 @@ after `dsh plugin --profile … install` and a restart.
 | Tokens (dark) | `--dsw-alias-bg-base` `#1a1917`, `--dsw-alias-label-primary` `#fff7f0`, brand `#e86038` |
 | Shape | `--dsw-radius-md` `8px`, `--dsw-corner-shape` `round` |
 | Material | menus and panels frosted: `--dsw-menu-backdrop-filter` `blur(26px) saturate(160%)`, fills `color-mix(… 55%, transparent)` |
-| Fonts | `--dsh-font-family-text-default` resolves to Geist Mono, then Cascadia Code NF |
+| Fonts | the theme sets none: `--dsh-font-family-text-default` keeps the shell's stack (Segoe UI on this machine) and a font chosen in Settings wins |
 | Frame transparency | frame and centre column compute to `rgba(0, 0, 0, 0)`; every panel is a frosted sheet |
 | Titlebar | the 40 px Windows caption strip computes to a 58 % tint over `blur(22px)`, so `Application / Edit` floats on the same glass as the panels |
 | Chat glass | only two blocks are frosted: the sent bubble (`46 %` tint + `blur(14px)`) and the code / command card (`30 %` + `blur(14px)`). The transcript column itself computes to `backdrop-filter: none`, so response prose stays crisp |

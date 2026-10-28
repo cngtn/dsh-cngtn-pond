@@ -38,10 +38,22 @@ export function hash3(x, y, z) {
   return (h >>> 0) / 4294967296;
 }
 
+/**
+ * Koi varieties, weighted the way a real pond is stocked: mostly white-and-red,
+ * a few patterned, and one or two of the metallic or blue fish that give a
+ * school its depth.
+ *
+ * Each entry is `[variety, weight]`. The renderer owns what each variety looks
+ * like; this table only decides how often one appears.
+ */
 const VARIETY_WEIGHTS = [
-  ['kohaku', 3],
-  ['sanke', 2],
-  ['tancho', 1],
+  ['kohaku', 4],
+  ['sanke', 3],
+  ['tancho', 2],
+  ['showa', 2],
+  ['ogon', 2],
+  ['asagi', 1],
+  ['bekko', 1],
 ];
 const TOTAL_WEIGHT = VARIETY_WEIGHTS.reduce((sum, [, w]) => sum + w, 0);
 
@@ -52,6 +64,43 @@ function pickVariety() {
     if (r <= 0) return variety;
   }
   return 'kohaku';
+}
+
+/**
+ * The pigment each fish can carry. These are mid-tones on purpose: the renderer
+ * shades them into a ramp, so a colour only has to be recognisable at the
+ * middle of the body, not at both ends of the scale.
+ */
+export const ACCENTS = {
+  vermilion: '#cc3e1c',
+  orange: '#e0662a',
+  gold: '#c9973a',
+  yellow: '#d8b64a',
+  crimson: '#a8231f',
+  blue: '#5f7f95',
+  silver: '#b9b3a9',
+  ink: '#3a3630',
+};
+
+/** Accent pools by palette preset; `mixed` is the full range. */
+export const ACCENT_PRESETS = {
+  mixed: Object.keys(ACCENTS),
+  warm: ['vermilion', 'orange', 'gold', 'yellow', 'crimson'],
+  cool: ['blue', 'silver'],
+  mono: ['ink'],
+};
+
+/** Valid values for the `palette` option, in menu order. */
+export const PALETTE_PRESETS = ['mixed', 'warm', 'cool', 'mono'];
+
+/** Valid variety names, in menu order. */
+export const VARIETIES = VARIETY_WEIGHTS.map(([name]) => name);
+
+function pickAccent(preset) {
+  const pool = ACCENT_PRESETS[preset] ?? ACCENT_PRESETS.mixed;
+  // The preset lists pigment *names*; a koi carries the hex, because that is
+  // what the renderer turns into a ramp.
+  return ACCENTS[pool[Math.floor(Math.random() * pool.length)]];
 }
 
 const push = { x: 0, y: 0 };
@@ -107,8 +156,18 @@ export class World {
     this.pointer = { x: 0, y: 0, speed: 0, active: false };
     /** Page content the koi steer around, in canvas space. */
     this.avoid = [];
-    /** Fraction of the site's population; 1 = the original, 0.55 = the DSH default. */
+    /** Fraction of the site's population; 1 = the original, 0.7 = the DSH default. */
     this.budget = options.budget ?? 1;
+    /**
+     * User-facing knobs, all optional:
+     *
+     *  - `fish`: an exact adult count (3–12). Overrides `budget`.
+     *  - `young`: whether the two small koi that keep to the deep water appear.
+     *  - `palette`: which accent pool the fish draw from.
+     */
+    this.fish = Number.isFinite(options.fish) ? clamp(Math.round(options.fish), 3, 12) : null;
+    this.young = options.young !== false;
+    this.palette = PALETTE_PRESETS.includes(options.palette) ? options.palette : 'mixed';
     this.lastFeed = -Infinity;
   }
 
@@ -141,11 +200,15 @@ export class World {
     // but the floor stays at three: a pond with two fish does not read as a pond,
     // it reads as two fish.
     const density = (W * H) / 240000;
-    const count = clamp(Math.round(density * this.budget), 3, 6);
+    // `fish` is the *total* the user asked for, so the number in the panel is the
+    // number in the pond. Without it the density estimate decides.
+    const total = this.fish !== null ? this.fish : clamp(Math.round(density * this.budget), 3, 6);
     // Wide screens also get a couple of young koi that keep to the deep water,
-    // for a sense of depth. The shell is often narrower than the site, so the
-    // young fish only appear when there is real water to hide them in.
-    const young = W >= 1024 && this.budget >= 0.6 ? 2 : 0;
+    // for a sense of depth. They are part of the total, never extra, and only
+    // appear when there is water and enough fish to spare.
+    const young =
+      this.young && W >= 1024 && this.budget >= 0.6 ? Math.min(2, Math.max(0, total - 3)) : 0;
+    const count = Math.max(1, total - young);
 
     this.koi = [];
     for (let i = 0; i < count + young; i++) {
@@ -164,6 +227,7 @@ export class World {
       this.koi.push({
         id: i + 1,
         variety: pickVariety(),
+        accent: pickAccent(this.palette),
         length,
         nodes,
         heading,
@@ -190,6 +254,38 @@ export class World {
         gulp: 0,
       });
     }
+  }
+
+  /**
+   * Apply new user settings. Population and palette changes re-seed the school,
+   * which is the only honest way to change "how many fish" — moving existing
+   * fish around would leave the pond with a different look than it reports.
+   */
+  setOptions(next = {}) {
+    let reseed = false;
+    if (next.fish !== undefined) {
+      const value = Number.isFinite(next.fish) ? clamp(Math.round(next.fish), 3, 12) : null;
+      if (value !== this.fish) {
+        this.fish = value;
+        reseed = true;
+      }
+    }
+    if (next.young !== undefined && Boolean(next.young) !== this.young) {
+      this.young = Boolean(next.young);
+      reseed = true;
+    }
+    if (next.palette !== undefined && PALETTE_PRESETS.includes(next.palette) && next.palette !== this.palette) {
+      this.palette = next.palette;
+      reseed = true;
+    }
+    if (next.budget !== undefined && Number.isFinite(next.budget)) this.budget = next.budget;
+    if (reseed && this.width > 0) this.seed();
+    return { fish: this.fish, young: this.young, palette: this.palette };
+  }
+
+  /** Current settings, for a settings UI to render. */
+  getOptions() {
+    return { fish: this.fish, young: this.young, palette: this.palette };
   }
 
   /** A loose handful thrown at (x, y): each pellet lands a beat apart with its own splash, then drifts and sinks. */

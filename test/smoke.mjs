@@ -56,10 +56,10 @@ const scope = new Function(
   between('const __m_world = (() => {', 'const __m_shape = (() => {') +
     '\n' +
     between('const __m_shape = (() => {', 'const __m_renderer = (() => {') +
-    '\nreturn { World, KOI_NODES, classify, bodyHalfWidth, angleDiff, hash3 };'
+    '\nreturn { World, KOI_NODES, classify, bodyHalfWidth, angleDiff, hash3, ACCENTS, ACCENT_PRESETS, PALETTE_PRESETS, VARIETIES };'
 )();
 
-const { World, KOI_NODES, classify, bodyHalfWidth } = scope;
+const { World, KOI_NODES, classify, bodyHalfWidth, ACCENTS, ACCENT_PRESETS, VARIETIES } = scope;
 
 const failures = [];
 const check = (ok, label, detail) => {
@@ -72,6 +72,49 @@ console.log('pond smoke');
 const world = new World({ budget: 0.55 });
 world.resize(1440, 900);
 check(world.koi.length >= 3 && world.koi.length <= 8, 'seeds a school inside the budget (' + world.koi.length + ')');
+
+// ── User settings ─────────────────────────────────────────────────────────
+// An explicit count must win over the density estimate, at any window size.
+const exact = new World({ fish: 9, young: false });
+exact.resize(1440, 900);
+check(exact.koi.length === 9, 'an explicit count is honoured (' + exact.koi.length + ')');
+const clamped = new World({ fish: 40, young: false });
+clamped.resize(1440, 900);
+check(clamped.koi.length === 12, 'the count is clamped to 12 (' + clamped.koi.length + ')');
+
+// Palette presets must actually restrict the pigment pool.
+const cool = new World({ fish: 8, palette: 'cool', young: false });
+cool.resize(1440, 900);
+check(
+  cool.koi.every((k) => ACCENT_PRESETS.cool.some((name) => ACCENTS[name] === k.accent)),
+  'the cool preset only draws cool pigments'
+);
+const mono = new World({ fish: 6, palette: 'mono', young: false });
+mono.resize(1440, 900);
+check(
+  mono.koi.every((k) => k.accent === ACCENTS.ink),
+  'the mono preset draws ink only'
+);
+
+// A school should show more than one variety, and every variety must be known.
+const mixed = new World({ fish: 10, young: false });
+mixed.resize(1440, 900);
+const seen = new Set(mixed.koi.map((k) => k.variety));
+check(seen.size >= 2, 'a ten-fish school shows more than one variety (' + seen.size + ')');
+check(
+  mixed.koi.every((k) => VARIETIES.includes(k.variety)),
+  'every variety is one the renderer knows'
+);
+check(
+  mixed.koi.every((k) => Object.values(ACCENTS).includes(k.accent)),
+  'every accent is one of the declared pigments'
+);
+
+// setOptions re-seeds in place, which is what the panel relies on.
+const tenFish = mixed.koi.length;
+mixed.setOptions({ fish: 4 });
+check(mixed.koi.length === 4 && mixed.koi.length !== tenFish, 'setOptions re-seeds the school');
+check(mixed.getOptions().fish === 4, 'getOptions reports the applied count');
 
 // Ten minutes at 60 Hz with a moving pointer, repeated feeds and swipes.
 let t = 0;

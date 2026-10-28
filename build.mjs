@@ -59,29 +59,7 @@ const { ${names.join(', ')} } = __m_${name};`;
 
 const base64 = (p) => readFileSync(join(here, p)).toString('base64');
 
-const FONT_CSS = `
-@font-face {
-  font-family: "Geist Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(data:font/woff2;base64,${base64('fonts/geist-mono-400.woff2')}) format("woff2");
-}
-@font-face {
-  font-family: "Geist Sans";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(data:font/woff2;base64,${base64('fonts/geist-sans-400.woff2')}) format("woff2");
-}
-@font-face {
-  font-family: "Geist Sans";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(data:font/woff2;base64,${base64('fonts/geist-sans-500.woff2')}) format("woff2");
-}
-`;
+
 
 const modules = [
   ['world', read('src/world.js')],
@@ -132,8 +110,8 @@ window.__ModuleLoader__.load({
     const module = { exports: {} };
     const exports = module.exports;
 
-/** The vendored Geist faces, as one stylesheet fragment. */
-const FONT_CSS = ${JSON.stringify(FONT_CSS)};
+// The theme sets no font family, so no webfont is inlined.
+
 
 ${modules.join('\n\n')}
 
