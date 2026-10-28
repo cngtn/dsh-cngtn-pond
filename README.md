@@ -1,15 +1,19 @@
-# Dao Ho Pond — the daoho.dev theme for DeepSeekRuntime
+# cngtn Pond — a paper-and-ink theme for DeepSeek Harness
 
-A theme bundle for the DSH Web GUI that reproduces [daoho.dev](https://www.daoho.dev/)
-— and the koi pond that swims behind it.
+A theme bundle for the DSH Web GUI: warm paper, warm ink, monospace type, hairline
+strokes, near-square corners — and a living ASCII koi pond behind the whole
+shell. The visual language is derived from a single-screen portfolio site; the
+analysis that produced it lives in
+[cngtn-analysis](https://github.com/cngtn/cngtn-analysis).
 
 ![The pond behind the shell, light](docs/pond.png)
 
 ![The pond behind the shell, dark](docs/pond-dark.png)
 
-The live site, for comparison: [light](docs/reference-light.png) /
-[dark](docs/reference-dark.png). The transcript and the Task Board under the
-theme: [transcript](docs/transcript.png), [taskboard](docs/taskboard.png).
+The reference screenshots the palette was measured against:
+[light](docs/reference-light.png) / [dark](docs/reference-dark.png). The
+transcript and the Task Board under the theme: [transcript](docs/transcript.png),
+[taskboard](docs/taskboard.png).
 
 ## What it is
 
@@ -26,7 +30,7 @@ Disabling the plugin removes all three and the GUI returns to its stock design.
 
 ## Why it looks the way it does
 
-The site's design system is four colours, one typeface and almost no decoration:
+The design system is four colours, one typeface and almost no decoration:
 
 ```
 paper  #f5f4f1   ink    #262523      (light)
@@ -35,7 +39,7 @@ ink    #1a1917   cream  #fff7f0      (dark)
 
 Everything else is derived: `color-mix` of ink over paper for strokes and muted
 text, `Geist Mono` for every piece of type, 8px on cards and 6px on media, and a
-single soft shadow reserved for the one elevated surface the site has.
+single soft shadow reserved for the one elevated surface.
 
 The one saturated colour is the koi. Its vermilion is step 3 of the pond's own
 highlight ramp (`#cc3e1c` on paper, `#e86038` on ink) and it becomes the accent,
@@ -44,8 +48,8 @@ colour, because "error" and "brand" must never be confusable.
 
 ## The pond
 
-The engine is a faithful port of `src/app/components/koi-pond/` from the
-portfolio repo, split the same way:
+The engine is a faithful port of the reference site's `koi-pond/` component,
+split the same way:
 
 | File | Ported from | Lines |
 |---|---|---|
@@ -57,8 +61,8 @@ portfolio repo, split the same way:
 Nothing was simplified: the seven steering forces, the burst-and-coast tail
 beats, the food-selection hysteresis, the startle threshold, the depth model, the
 five-point sub-sampled coverage test, the body-anchored glyph hash, the
-travelling sheen, the wake diffusion and both palettes are the site's own. A
-pixel comparison of the darkest body colour against the live site agrees to
+travelling sheen, the wake diffusion and both palettes are the original's. A
+pixel comparison of the darkest body colour against the reference agrees to
 within one unit per channel.
 
 Three things did change, because a shell is not a landing page:
@@ -82,18 +86,18 @@ Three things did change, because a shell is not a landing page:
 One command, no clone:
 
 ```powershell
-npx github:cngtn/dsh-daoho-pond
+npx github:cngtn/dsh-cngtn-pond
 ```
 
 It installs into the `desktop` profile by default:
 
 ```powershell
-npx github:cngtn/dsh-daoho-pond --list              # profiles on this machine
-npx github:cngtn/dsh-daoho-pond --profile web       # a different profile
-npx github:cngtn/dsh-daoho-pond --uninstall         # back to the stock design
+npx github:cngtn/dsh-cngtn-pond --list              # profiles on this machine
+npx github:cngtn/dsh-cngtn-pond --profile web       # a different profile
+npx github:cngtn/dsh-cngtn-pond --uninstall         # back to the stock design
 ```
 
-The installer copies the bundle to `~/.dsh/themes/dsh-daoho-pond`, junctions it
+The installer copies the bundle to `~/.dsh/themes/dsh-cngtn-pond`, junctions it
 into the profile's `node_modules`, and records it as a `file:` dependency plus a
 bundle entry. The profile manifest is backed up before every write. `DSH_HOME`
 overrides `~/.dsh` for a non-default installation.
@@ -107,7 +111,7 @@ Then restart DeepSeek Harness. The bundle list it writes looks like this:
       "bundles": [
         "@deepseek-ai/dsh-base",
         "@deepseek-ai/dsh-web-app",
-        "@local/dsh-daoho-pond"
+        "@local/dsh-cngtn-pond"
       ]
     }
   }
@@ -120,7 +124,7 @@ If you would rather wire it up yourself:
 
 ```powershell
 cd $env:USERPROFILE\.dsh\profiles\desktop
-dsh plugin --profile desktop add "file:C:/path/to/dsh-daoho-pond"
+dsh plugin --profile desktop add "file:C:/path/to/dsh-cngtn-pond"
 ```
 
 Only one theme at a time: token layers stack, and the last one registered wins
@@ -200,8 +204,8 @@ after `dsh plugin --profile … install` and a restart.
 
 | Check | Result |
 |---|---|
-| Bundle activates | `@local/dsh-daoho-pond` reaches `active`; no boot-audit entry |
-| Canvas mounted | `#daoho-pond-canvas` present, 1280×820 in the app, 1440×900 in the browser |
+| Bundle activates | `@local/dsh-cngtn-pond` reaches `active`; no boot-audit entry |
+| Canvas mounted | `#cngtn-pond-canvas` present, 1280×820 in the app, 1440×900 in the browser |
 | Pond painting | 23k–66k non-transparent pixels, moving between frames |
 | Tokens (light) | `--dsw-alias-bg-base` `#f5f4f1`, `--dsw-alias-label-primary` `#262523`, brand `#cc3e1c` |
 | Tokens (dark) | `--dsw-alias-bg-base` `#1a1917`, `--dsw-alias-label-primary` `#fff7f0`, brand `#e86038` |

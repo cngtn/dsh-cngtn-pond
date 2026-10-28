@@ -1,5 +1,5 @@
 /**
- * engine.js — the pond's lifecycle, ported from daoho.dev's `koi-pond.tsx`.
+ * engine.js — the pond's lifecycle, ported from the original site's `koi-pond.tsx`.
  *
  * The React component on the site does four things this module also does, in
  * plain DOM: own the rAF loop with a fixed-step accumulator, keep the canvas
@@ -23,13 +23,13 @@ import { KoiRenderer } from './renderer.js';
 const STEP = 1 / 60;
 const MAX_STEPS = 4;
 // Content over the pond carries this attribute; koi steer around it and fade beneath it.
-const AVOID_TARGETS = '[data-daoho-avoid]';
+const AVOID_TARGETS = '[data-cngtn-avoid]';
 // Re-measure the content boxes this often, in frames, to follow layout shifts.
 const MEASURE_EVERY_FRAMES = 30;
 // Content boxes closer than this merge, so koi aren't squeezed into the slot between them.
 const MERGE_GAP_PX = 72;
 const INTERACTIVE =
-  "a, button, input, textarea, select, label, [role='button'], [role='menuitem'], [contenteditable='true'], [data-daoho-ignore]";
+  "a, button, input, textarea, select, label, [role='button'], [role='menuitem'], [contenteditable='true'], [data-cngtn-ignore]";
 
 /**
  * Surfaces that genuinely hide the water. Only the status strip is opaque in

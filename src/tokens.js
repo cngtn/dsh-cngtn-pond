@@ -1,5 +1,5 @@
 /**
- * tokens.js — the daoho.dev palette, expressed as DSH theme tokens.
+ * tokens.js — the original palette, expressed as DSH theme tokens.
  *
  * `overrideTokens` requires every entry to be a `{ light, dark }` pair of
  * strings; a bare string throws, because a value that only works in one colour
@@ -499,7 +499,7 @@ const statics = [
 for (const [name, light, dark] of statics) set(name, light, dark);
 
 /** Build stamps, so inspection can tell which revision is live from the page. */
-set('--dsw-daoho-build', '1.0.0', '1.0.0');
-set('--dsw-daoho-pond', 'live', 'live');
+set('--dsw-cngtn-build', '1.0.0', '1.0.0');
+set('--dsw-cngtn-pond', 'live', 'live');
 
 export { tokens, PAPER, INK, MONO, SANS };

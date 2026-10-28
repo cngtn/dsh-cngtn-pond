@@ -1,8 +1,8 @@
 {
-  "name": "@local/dsh-daoho-pond",
+  "name": "@local/dsh-cngtn-pond",
   "version": "1.1.1",
   "private": true,
-  "description": "The daoho.dev paper-and-ink theme for the DeepSeekRuntime Web GUI: warm paper surfaces, hairline strokes, a monospace type ramp, near-square corners, and a living ASCII koi pond drawn behind the whole shell.",
+  "description": "A paper-and-ink theme for the DeepSeek Harness Web GUI: warm paper surfaces, hairline strokes, a monospace type ramp, near-square corners, and a living ASCII koi pond drawn behind the whole shell.",
   "type": "module",
   "exports": {
     ".": "./index.js",
@@ -41,6 +41,6 @@
     "playwright-core": "^1.56.0"
   },
   "bin": {
-    "dsh-daoho-pond": "./bin/install.mjs"
+    "dsh-cngtn-pond": "./bin/install.mjs"
   }
 }

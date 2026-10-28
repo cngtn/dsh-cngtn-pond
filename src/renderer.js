@@ -1,5 +1,5 @@
 /**
- * renderer.js — the ASCII rasteriser, ported from daoho.dev's `renderer.ts`.
+ * renderer.js — the ASCII rasteriser, ported from the original site's `renderer.ts`.
  *
  * The fish are not drawn, they are *etched*: the pond is a grid of monospace
  * cells, each carrying one glyph, one glyph colour, one tile fill and one

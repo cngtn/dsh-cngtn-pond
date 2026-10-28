@@ -40,7 +40,7 @@ if (endpoint.startsWith('http')) {
 await page.waitForTimeout(4000);
 
 const state = await page.evaluate(() => {
-  const canvas = document.querySelector('#daoho-pond-canvas');
+  const canvas = document.querySelector('#cngtn-pond-canvas');
   const body = getComputedStyle(document.body);
   const read = (name) => body.getPropertyValue(name).trim();
   let painted = null;
@@ -65,11 +65,11 @@ const state = await page.evaluate(() => {
     menu: read('--dsw-menu-surface-fill'),
     blur: read('--dsw-menu-backdrop-filter'),
     font: read('--dsh-font-family-text-default').split(',')[0],
-    build: read('--dsw-daoho-build'),
+    build: read('--dsw-cngtn-build'),
     frameBg: frame ? getComputedStyle(frame).backgroundColor : null,
     centreBg: centre ? getComputedStyle(centre).backgroundColor : null,
-    daohoStyles: [...document.querySelectorAll('style[data-plugin-css]')].filter((s) =>
-      /daoho/.test(s.dataset.pluginCss)
+    cngtnStyles: [...document.querySelectorAll('style[data-plugin-css]')].filter((s) =>
+      /cngtn/.test(s.dataset.pluginCss)
     ).length,
   };
 });

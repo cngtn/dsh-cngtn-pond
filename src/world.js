@@ -1,5 +1,5 @@
 /**
- * world.js — the pond's physics, ported from daoho.dev's `world.ts`.
+ * world.js — the pond's physics, ported from the original site's `world.ts`.
  *
  * Nothing here touches the DOM or a canvas: this module owns koi, pellets,
  * ripples and bites, and steps them on a fixed 1/60s clock. Keeping it pure is
@@ -8,7 +8,7 @@
  *
  * The port is deliberately literal. Every constant, every steering force and
  * every ordering decision is the one the site ships, because the whole point of
- * this theme is that the pond feels the same as the pond on daoho.dev.
+ * this theme is that the pond feels the same as the pond on the original site.
  */
 
 export const TAU = Math.PI * 2;
@@ -107,7 +107,7 @@ export class World {
     this.pointer = { x: 0, y: 0, speed: 0, active: false };
     /** Page content the koi steer around, in canvas space. */
     this.avoid = [];
-    /** Fraction of the site's population; 1 = daoho.dev, 0.55 = the DSH default. */
+    /** Fraction of the site's population; 1 = the original, 0.55 = the DSH default. */
     this.budget = options.budget ?? 1;
     this.lastFeed = -Infinity;
   }

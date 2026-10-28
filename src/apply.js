@@ -13,7 +13,7 @@
  */
 
 /** Layer identity for the token override; also the plugin's display id. */
-const ID = '@local/dsh-daoho-pond';
+const ID = '@local/dsh-cngtn-pond';
 
 /** Required Client services: the theme registry owns the token layer. */
 const inject = ['theme'];
@@ -33,11 +33,11 @@ function mountPond() {
     if (typeof document === 'undefined' || document.body === null) return () => {};
 
     // One canvas per document, even across a hot reload of this plugin.
-    const stale = document.querySelector('#daoho-pond-canvas');
+    const stale = document.querySelector('#cngtn-pond-canvas');
     if (stale !== null) stale.remove();
 
     const canvas = document.createElement('canvas');
-    canvas.id = 'daoho-pond-canvas';
+    canvas.id = 'cngtn-pond-canvas';
     canvas.setAttribute('aria-hidden', 'true');
     // The canvas never takes input, so a click anywhere still reaches the
     // control under it.
@@ -54,7 +54,7 @@ function mountPond() {
       });
     } catch (error) {
       canvas.remove();
-      console.error('[daoho-pond] engine unavailable:', error && error.message);
+      console.error('[cngtn-pond] engine unavailable:', error && error.message);
       return () => {};
     }
 
@@ -69,12 +69,12 @@ function mountPond() {
       canvas.remove();
     };
   } catch (error) {
-    console.error('[daoho-pond] mount failed:', error && (error.stack || error.message));
+    console.error('[cngtn-pond] mount failed:', error && (error.stack || error.message));
     return () => {};
   }
 }
 
-/** Insert the daoho stylesheet once; the returned disposer removes it. */
+/** Insert the cngtn stylesheet once; the returned disposer removes it. */
 function injectStyles() {
   try {
     if (typeof document === 'undefined' || document.head === null) return () => {};
@@ -88,7 +88,7 @@ function injectStyles() {
     document.head.appendChild(tag);
     return () => tag.remove();
   } catch (error) {
-    console.error('[daoho-pond] styles failed:', error && (error.stack || error.message));
+    console.error('[cngtn-pond] styles failed:', error && (error.stack || error.message));
     return () => {};
   }
 }
@@ -97,11 +97,11 @@ function injectStyles() {
 function apply(ctx) {
   try {
     const theme = ctx.theme;
-    ctx.effect(() => mountPond(), 'daoho-pond: koi pond');
-    ctx.effect(() => theme.overrideTokens(ID, tokens), 'daoho-pond: token layer');
-    ctx.effect(() => injectStyles(), 'daoho-pond: stylesheet');
+    ctx.effect(() => mountPond(), 'cngtn-pond: koi pond');
+    ctx.effect(() => theme.overrideTokens(ID, tokens), 'cngtn-pond: token layer');
+    ctx.effect(() => injectStyles(), 'cngtn-pond: stylesheet');
   } catch (error) {
-    console.error('[daoho-pond] apply failed:', error && (error.stack || error.message));
+    console.error('[cngtn-pond] apply failed:', error && (error.stack || error.message));
     throw error;
   }
 }

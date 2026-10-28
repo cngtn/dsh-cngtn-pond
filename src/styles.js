@@ -1,5 +1,5 @@
 /**
- * styles.js — the parts of the daoho.dev look that a token cannot express.
+ * styles.js — the parts of the original look that a token cannot express.
  *
  * A token can restate a colour, a radius, a shadow. It cannot:
  *
@@ -42,13 +42,13 @@ ${fontCss}
 
    Instead the two layers are ordered explicitly, both non-negative:
 
-     #daoho-pond-canvas     z-index: 0   the water
+     #cngtn-pond-canvas     z-index: 0   the water
      [data-slot="root"]>div z-index: 1   the shell frame
 
    Everything the shell renders lives inside the frame, so the whole interface
    paints above the water; only the regions the rules below leave transparent
    let it show. */
-#daoho-pond-canvas {
+#cngtn-pond-canvas {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -342,7 +342,7 @@ html body [data-trajectory-scroll] tr[data-trajectory-row-key]:hover > td {
    The site never colours a link; it underlines one, faintly, and firms the
    underline on hover. Reproduced here for prose links only. */
 body [data-chat-flow] a,
-body [data-daoho-prose] a {
+body [data-cngtn-prose] a {
   color: inherit;
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
@@ -352,8 +352,8 @@ body [data-daoho-prose] a {
 }
 body [data-chat-flow] a:hover,
 body [data-chat-flow] a:focus-visible,
-body [data-daoho-prose] a:hover,
-body [data-daoho-prose] a:focus-visible {
+body [data-cngtn-prose] a:hover,
+body [data-cngtn-prose] a:focus-visible {
   text-decoration-color: currentColor;
 }
 
@@ -382,7 +382,7 @@ body {
    stops painting (the engine clears it) and every glass panel regains its own
    fill, so nothing depends on the canvas. */
 @media (prefers-reduced-transparency: reduce) {
-  #daoho-pond-canvas { display: none; }
+  #cngtn-pond-canvas { display: none; }
   body [data-slot="root"] > div {
     background-color: var(--dsw-alias-bg-base) !important;
   }
@@ -425,7 +425,7 @@ body {
 /* ── Print ────────────────────────────────────────────────────────────────
    The pond is decoration; paper is what gets printed. */
 @media print {
-  #daoho-pond-canvas { display: none; }
+  #cngtn-pond-canvas { display: none; }
   html body [data-slot="root"] > div > div:nth-child(1)::before,
   html body [data-rightbar-col]::before,
   html body [data-composer-card]::before {

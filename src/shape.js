@@ -1,5 +1,5 @@
 /**
- * shape.js — the koi outline, ported from daoho.dev's `shape.ts`.
+ * shape.js — the koi outline, ported from the original site's `shape.ts`.
  *
  * A point is classified against the body in *body space*: `s` runs along the
  * spine from snout (0) to tail tip (1), `a` is the distance from it, and `past`

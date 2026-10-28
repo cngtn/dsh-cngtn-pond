@@ -1,5 +1,5 @@
 /**
- * Host half of the daoho-pond bundle.
+ * Host half of the cngtn-pond bundle.
  *
  * The whole restyle is browser-side: the Client half stacks a paper-and-ink
  * token layer over the active theme through the `theme` service, injects one

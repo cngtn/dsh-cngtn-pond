@@ -2,17 +2,17 @@
 /**
  * install.mjs — put the theme into a DeepSeek Harness profile.
  *
- *   npx github:cngtn/dsh-daoho-pond
- *   npx github:cngtn/dsh-daoho-pond --profile web
- *   npx github:cngtn/dsh-daoho-pond --uninstall
+ *   npx github:cngtn/dsh-cngtn-pond
+ *   npx github:cngtn/dsh-cngtn-pond --profile web
+ *   npx github:cngtn/dsh-cngtn-pond --uninstall
  *
  * `npx` gives us a throwaway copy of this package. A DSH profile cannot use
  * that copy: the path lives in an npx cache that is wiped on the next run, and
  * the profile's `package.json` would point at a directory that no longer
  * exists. So the installer does what a package manager would do, explicitly:
  *
- *   1. copy the bundle to a stable place — `~/.dsh/themes/dsh-daoho-pond`;
- *   2. link it into `<profile>/node_modules/@local/dsh-daoho-pond`;
+ *   1. copy the bundle to a stable place — `~/.dsh/themes/dsh-cngtn-pond`;
+ *   2. link it into `<profile>/node_modules/@local/dsh-cngtn-pond`;
  *   3. record it as a `file:` dependency and add it to `dsh.profile.bundles`.
  *
  * Step 3 is what makes the theme survive a `pnpm install`: the dependency is
@@ -40,7 +40,7 @@ import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ID = '@local/dsh-daoho-pond';
+const ID = '@local/dsh-cngtn-pond';
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Files the shell loads at runtime. Fonts are already inlined in client.js. */
@@ -61,9 +61,9 @@ const fail = (line) => {
 };
 
 if (flag('help') || argv.includes('-h')) {
-  say('dsh-daoho-pond — the daoho.dev theme for DeepSeek Harness');
+  say('dsh-cngtn-pond — a paper-and-ink theme for DeepSeek Harness');
   say('');
-  say('  npx github:cngtn/dsh-daoho-pond [options]');
+  say('  npx github:cngtn/dsh-cngtn-pond [options]');
   say('');
   say('  --profile <name>   DSH profile to install into (default: desktop)');
   say('  --uninstall        remove the theme from that profile');
@@ -98,8 +98,8 @@ if (!existsSync(manifestPath)) {
   fail('profile "' + profileName + '" not found. Available: ' + (profiles.join(', ') || '(none)'));
 }
 
-const themeDir = join(dshRoot, 'themes', 'dsh-daoho-pond');
-const linkDir = join(profileDir, 'node_modules', '@local', 'dsh-daoho-pond');
+const themeDir = join(dshRoot, 'themes', 'dsh-cngtn-pond');
+const linkDir = join(profileDir, 'node_modules', '@local', 'dsh-cngtn-pond');
 
 function readManifest() {
   return JSON.parse(readFileSync(manifestPath, 'utf8'));

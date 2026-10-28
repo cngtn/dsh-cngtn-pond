@@ -1,5 +1,5 @@
 /**
- * @local/dsh-daoho-pond — Client half.
+ * @local/dsh-cngtn-pond — Client half.
  *
  * Hand-written against the module-loader contract (the shell has no bundler):
  * it evaluates this file, the factory receives `require`, and the returned
@@ -31,7 +31,7 @@
  * stock design.
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-daoho-pond',
+  id: '@local/dsh-cngtn-pond',
   factory: (require) => {
     const module = { exports: {} };
     const exports = module.exports;
@@ -42,7 +42,7 @@ const FONT_CSS = "\n@font-face {\n  font-family: \"Geist Mono\";\n  font-style: 
 /* ── world ─────────────────────────────────────────────────────────────── */
 const __m_world = (() => {
 /**
- * world.js — the pond's physics, ported from daoho.dev's `world.ts`.
+ * world.js — the pond's physics, ported from the original site's `world.ts`.
  *
  * Nothing here touches the DOM or a canvas: this module owns koi, pellets,
  * ripples and bites, and steps them on a fixed 1/60s clock. Keeping it pure is
@@ -51,7 +51,7 @@ const __m_world = (() => {
  *
  * The port is deliberately literal. Every constant, every steering force and
  * every ordering decision is the one the site ships, because the whole point of
- * this theme is that the pond feels the same as the pond on daoho.dev.
+ * this theme is that the pond feels the same as the pond on the original site.
  */
 
 const TAU = Math.PI * 2;
@@ -150,7 +150,7 @@ class World {
     this.pointer = { x: 0, y: 0, speed: 0, active: false };
     /** Page content the koi steer around, in canvas space. */
     this.avoid = [];
-    /** Fraction of the site's population; 1 = daoho.dev, 0.55 = the DSH default. */
+    /** Fraction of the site's population; 1 = the original, 0.55 = the DSH default. */
     this.budget = options.budget ?? 1;
     this.lastFeed = -Infinity;
   }
@@ -504,7 +504,7 @@ const { TAU, KOI_NODES, RIPPLE_SPEED, clamp, smoothstep, angleDiff, hash3, PELLE
 /* ── shape ─────────────────────────────────────────────────────────────── */
 const __m_shape = (() => {
 /**
- * shape.js — the koi outline, ported from daoho.dev's `shape.ts`.
+ * shape.js — the koi outline, ported from the original site's `shape.ts`.
  *
  * A point is classified against the body in *body space*: `s` runs along the
  * spine from snout (0) to tail tip (1), `a` is the distance from it, and `past`
@@ -603,7 +603,7 @@ const { FLAG_BODY, FLAG_FIN, FLAG_EYE, FLAG_DORSAL, FLAG_BARBEL, bodyHalfWidth, 
 /* ── renderer ─────────────────────────────────────────────────────────────── */
 const __m_renderer = (() => {
 /**
- * renderer.js — the ASCII rasteriser, ported from daoho.dev's `renderer.ts`.
+ * renderer.js — the ASCII rasteriser, ported from the original site's `renderer.ts`.
  *
  * The fish are not drawn, they are *etched*: the pond is a grid of monospace
  * cells, each carrying one glyph, one glyph colour, one tile fill and one
@@ -1355,7 +1355,7 @@ const { KoiRenderer } = __m_renderer;
 /* ── engine ─────────────────────────────────────────────────────────────── */
 const __m_engine = (() => {
 /**
- * engine.js — the pond's lifecycle, ported from daoho.dev's `koi-pond.tsx`.
+ * engine.js — the pond's lifecycle, ported from the original site's `koi-pond.tsx`.
  *
  * The React component on the site does four things this module also does, in
  * plain DOM: own the rAF loop with a fixed-step accumulator, keep the canvas
@@ -1378,13 +1378,13 @@ const __m_engine = (() => {
 const STEP = 1 / 60;
 const MAX_STEPS = 4;
 // Content over the pond carries this attribute; koi steer around it and fade beneath it.
-const AVOID_TARGETS = '[data-daoho-avoid]';
+const AVOID_TARGETS = '[data-cngtn-avoid]';
 // Re-measure the content boxes this often, in frames, to follow layout shifts.
 const MEASURE_EVERY_FRAMES = 30;
 // Content boxes closer than this merge, so koi aren't squeezed into the slot between them.
 const MERGE_GAP_PX = 72;
 const INTERACTIVE =
-  "a, button, input, textarea, select, label, [role='button'], [role='menuitem'], [contenteditable='true'], [data-daoho-ignore]";
+  "a, button, input, textarea, select, label, [role='button'], [role='menuitem'], [contenteditable='true'], [data-cngtn-ignore]";
 
 /**
  * Surfaces that genuinely hide the water. Only the status strip is opaque in
@@ -1664,7 +1664,7 @@ const { PondEngine } = __m_engine;
 /* ── tokens ─────────────────────────────────────────────────────────────── */
 const __m_tokens = (() => {
 /**
- * tokens.js — the daoho.dev palette, expressed as DSH theme tokens.
+ * tokens.js — the original palette, expressed as DSH theme tokens.
  *
  * `overrideTokens` requires every entry to be a `{ light, dark }` pair of
  * strings; a bare string throws, because a value that only works in one colour
@@ -2164,8 +2164,8 @@ const statics = [
 for (const [name, light, dark] of statics) set(name, light, dark);
 
 /** Build stamps, so inspection can tell which revision is live from the page. */
-set('--dsw-daoho-build', '1.0.0', '1.0.0');
-set('--dsw-daoho-pond', 'live', 'live');
+set('--dsw-cngtn-build', '1.0.0', '1.0.0');
+set('--dsw-cngtn-pond', 'live', 'live');
 
 
 return { tokens, PAPER, INK, MONO, SANS };
@@ -2175,7 +2175,7 @@ const { tokens, PAPER, INK, MONO, SANS } = __m_tokens;
 /* ── styles ─────────────────────────────────────────────────────────────── */
 const __m_styles = (() => {
 /**
- * styles.js — the parts of the daoho.dev look that a token cannot express.
+ * styles.js — the parts of the original look that a token cannot express.
  *
  * A token can restate a colour, a radius, a shadow. It cannot:
  *
@@ -2218,13 +2218,13 @@ ${fontCss}
 
    Instead the two layers are ordered explicitly, both non-negative:
 
-     #daoho-pond-canvas     z-index: 0   the water
+     #cngtn-pond-canvas     z-index: 0   the water
      [data-slot="root"]>div z-index: 1   the shell frame
 
    Everything the shell renders lives inside the frame, so the whole interface
    paints above the water; only the regions the rules below leave transparent
    let it show. */
-#daoho-pond-canvas {
+#cngtn-pond-canvas {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -2518,7 +2518,7 @@ html body [data-trajectory-scroll] tr[data-trajectory-row-key]:hover > td {
    The site never colours a link; it underlines one, faintly, and firms the
    underline on hover. Reproduced here for prose links only. */
 body [data-chat-flow] a,
-body [data-daoho-prose] a {
+body [data-cngtn-prose] a {
   color: inherit;
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
@@ -2528,8 +2528,8 @@ body [data-daoho-prose] a {
 }
 body [data-chat-flow] a:hover,
 body [data-chat-flow] a:focus-visible,
-body [data-daoho-prose] a:hover,
-body [data-daoho-prose] a:focus-visible {
+body [data-cngtn-prose] a:hover,
+body [data-cngtn-prose] a:focus-visible {
   text-decoration-color: currentColor;
 }
 
@@ -2558,7 +2558,7 @@ body {
    stops painting (the engine clears it) and every glass panel regains its own
    fill, so nothing depends on the canvas. */
 @media (prefers-reduced-transparency: reduce) {
-  #daoho-pond-canvas { display: none; }
+  #cngtn-pond-canvas { display: none; }
   body [data-slot="root"] > div {
     background-color: var(--dsw-alias-bg-base) !important;
   }
@@ -2601,7 +2601,7 @@ body {
 /* ── Print ────────────────────────────────────────────────────────────────
    The pond is decoration; paper is what gets printed. */
 @media print {
-  #daoho-pond-canvas { display: none; }
+  #cngtn-pond-canvas { display: none; }
   html body [data-slot="root"] > div > div:nth-child(1)::before,
   html body [data-rightbar-col]::before,
   html body [data-composer-card]::before {
@@ -2638,7 +2638,7 @@ const { buildStyles } = __m_styles;
  */
 
 /** Layer identity for the token override; also the plugin's display id. */
-const ID = '@local/dsh-daoho-pond';
+const ID = '@local/dsh-cngtn-pond';
 
 /** Required Client services: the theme registry owns the token layer. */
 const inject = ['theme'];
@@ -2658,11 +2658,11 @@ function mountPond() {
     if (typeof document === 'undefined' || document.body === null) return () => {};
 
     // One canvas per document, even across a hot reload of this plugin.
-    const stale = document.querySelector('#daoho-pond-canvas');
+    const stale = document.querySelector('#cngtn-pond-canvas');
     if (stale !== null) stale.remove();
 
     const canvas = document.createElement('canvas');
-    canvas.id = 'daoho-pond-canvas';
+    canvas.id = 'cngtn-pond-canvas';
     canvas.setAttribute('aria-hidden', 'true');
     // The canvas never takes input, so a click anywhere still reaches the
     // control under it.
@@ -2679,7 +2679,7 @@ function mountPond() {
       });
     } catch (error) {
       canvas.remove();
-      console.error('[daoho-pond] engine unavailable:', error && error.message);
+      console.error('[cngtn-pond] engine unavailable:', error && error.message);
       return () => {};
     }
 
@@ -2694,12 +2694,12 @@ function mountPond() {
       canvas.remove();
     };
   } catch (error) {
-    console.error('[daoho-pond] mount failed:', error && (error.stack || error.message));
+    console.error('[cngtn-pond] mount failed:', error && (error.stack || error.message));
     return () => {};
   }
 }
 
-/** Insert the daoho stylesheet once; the returned disposer removes it. */
+/** Insert the cngtn stylesheet once; the returned disposer removes it. */
 function injectStyles() {
   try {
     if (typeof document === 'undefined' || document.head === null) return () => {};
@@ -2713,7 +2713,7 @@ function injectStyles() {
     document.head.appendChild(tag);
     return () => tag.remove();
   } catch (error) {
-    console.error('[daoho-pond] styles failed:', error && (error.stack || error.message));
+    console.error('[cngtn-pond] styles failed:', error && (error.stack || error.message));
     return () => {};
   }
 }
@@ -2722,11 +2722,11 @@ function injectStyles() {
 function apply(ctx) {
   try {
     const theme = ctx.theme;
-    ctx.effect(() => mountPond(), 'daoho-pond: koi pond');
-    ctx.effect(() => theme.overrideTokens(ID, tokens), 'daoho-pond: token layer');
-    ctx.effect(() => injectStyles(), 'daoho-pond: stylesheet');
+    ctx.effect(() => mountPond(), 'cngtn-pond: koi pond');
+    ctx.effect(() => theme.overrideTokens(ID, tokens), 'cngtn-pond: token layer');
+    ctx.effect(() => injectStyles(), 'cngtn-pond: stylesheet');
   } catch (error) {
-    console.error('[daoho-pond] apply failed:', error && (error.stack || error.message));
+    console.error('[cngtn-pond] apply failed:', error && (error.stack || error.message));
     throw error;
   }
 }

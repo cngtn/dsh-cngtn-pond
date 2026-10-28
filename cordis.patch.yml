@@ -1,9 +1,9 @@
-# daoho-pond bundle patch — inserts the `daoho-pond` row into the profile.
+# cngtn-pond bundle patch — inserts the `cngtn-pond` row into the profile.
 #
 # The row needs no configuration: the Client half registers one token layer, one
 # stylesheet, and one koi-pond canvas through the `theme` service, and removes
 # all three when the plugin is disabled. A user layer may override this row by
-# id (`daoho-pond`) — the same-id row wins.
+# id (`cngtn-pond`) — the same-id row wins.
 - insert:
-    - id: daoho-pond
-      name: '@local/dsh-daoho-pond'
+    - id: cngtn-pond
+      name: '@local/dsh-cngtn-pond'
