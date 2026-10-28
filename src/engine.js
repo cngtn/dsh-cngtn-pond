@@ -8,6 +8,13 @@
  * shell needs and a landing page does not: it survives being mounted into a live
  * application, it pauses when the window is hidden or the canvas is covered, and
  * it tears every listener down on dispose.
+ *
+ * One thing it deliberately does *not* do is steer the koi around the shell's
+ * panels. On the site the prose block is the only thing over the water, so the
+ * fish avoid it and fade beneath it. In a shell every panel is a frosted sheet:
+ * the whole point of the theme is that a koi swims *under* the sidebar and the
+ * composer and reads through the blur. Steering them away would leave every
+ * glass panel empty, which is exactly the failure this module used to have.
  */
 
 import { World, clamp } from './world.js';
@@ -25,41 +32,26 @@ const INTERACTIVE =
   "a, button, input, textarea, select, label, [role='button'], [role='menuitem'], [contenteditable='true'], [data-daoho-ignore]";
 
 /**
- * Surfaces the shell paints opaque. A koi that swims under one is invisible
- * anyway, so these are only about steering: the fish turn away from them, which
- * keeps the school in the open water instead of vanishing behind a panel and
- * reappearing somewhere else.
+ * Surfaces that genuinely hide the water. Only the status strip is opaque in
+ * this theme; the sidebar, the right panel and the composer are frosted glass,
+ * so a koi under one is *meant* to be seen. Steering away from them would make
+ * the glass pointless.
  *
- * Every entry is a `data-*` hook or a `data-slot` value the shell publishes
- * itself — never a hashed CSS-module class — so a DSH update cannot silently
- * turn this list into a no-op.
+ * Every entry is a `data-*` hook the shell publishes itself — never a hashed
+ * CSS-module class — so a DSH update cannot silently turn this list into a
+ * no-op.
  */
-const OPAQUE_SELECTORS = [
-  '[data-slot="sidebar"]',
-  '[data-shell-bottom]',
-  '[data-rightbar-col]',
-  '[data-composer-card]',
-];
+const OPAQUE_SELECTORS = ['[data-shell-bottom]'];
 
 /**
- * Surfaces that sit over the water without painting their own paper, so what is
- * drawn beneath them has to be faded by hand. The shell's hero heading is the
- * only one: it is bare text in the middle of the frame.
+ * Text that sits directly on the water and therefore needs the fish faded
+ * beneath it: one block per message, plus the hero heading.
  *
- * The composer is deliberately absent. It carries an opaque card, which already
- * hides the water, and fading its whole 240px seat as well would wash out the
- * centre of the pond for no readability gain — the site's own prose block is a
- * small band near the bottom of a full-screen page, not a panel in the middle of
- * an application.
+ * The fade is gentle — 0.55, not the site's 0.15 — because in this theme the
+ * water is the subject. A koi under a paragraph should read as a fish seen
+ * through frosted glass, not as a watermark.
  */
-const TRANSLUCENT_SELECTORS = [
-  // One block per message, which is the closest thing the shell has to the
-  // site's `data-koi-avoid` prose block: the water fades under the words, not
-  // under the whole column, so the pond stays visible in the empty space
-  // between messages.
-  '[data-chat-turn]',
-  '[data-slot="conversation.header"]',
-];
+const TRANSLUCENT_SELECTORS = ['[data-chat-turn]', '[data-slot="conversation.header"]'];
 
 function mergeNearby(boxes) {
   const merged = [];
@@ -81,7 +73,7 @@ function mergeNearby(boxes) {
 export class PondEngine {
   constructor(canvas, options = {}) {
     this.canvas = canvas;
-    this.world = new World({ budget: options.budget ?? 0.55 });
+    this.world = new World({ budget: options.budget ?? 0.7 });
     this.renderer = new KoiRenderer(canvas, { maxCells: options.maxCells ?? 26000 });
     this.raf = 0;
     this.last = 0;
@@ -209,8 +201,8 @@ export class PondEngine {
 
   measureContent() {
     // `data-koi-avoid` is the site's own contract: steer around it *and* fade
-    // beneath it. The shell's opaque panels only steer; its translucent ones
-    // only fade. Keeping the two lists apart matters, because merging an opaque
+    // beneath it. The shell's opaque panels only steer; the text blocks only
+    // fade. Keeping the two lists apart matters, because merging an opaque
     // full-height sidebar with the composer would otherwise produce one huge box
     // that washes out half the pond.
     const own = mergeNearby(this.rectsFor([AVOID_TARGETS]));
@@ -227,7 +219,7 @@ export class PondEngine {
       { boxes: own, floor: 0.15 },
       // The transcript: every message is text on water, so a koi has to be a
       // whisper there or the paragraph stops being readable.
-      { boxes: translucent, floor: 0.04 },
+      { boxes: translucent, floor: 0.55 },
     ]);
   }
 

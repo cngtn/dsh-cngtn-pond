@@ -163,11 +163,13 @@ after `dsh plugin --profile … install` and a restart.
 | Tokens (light) | `--dsw-alias-bg-base` `#f5f4f1`, `--dsw-alias-label-primary` `#262523`, brand `#cc3e1c` |
 | Tokens (dark) | `--dsw-alias-bg-base` `#1a1917`, `--dsw-alias-label-primary` `#fff7f0`, brand `#e86038` |
 | Shape | `--dsw-radius-md` `8px`, `--dsw-corner-shape` `round` |
-| Material | `--dsw-menu-surface-fill` opaque, `--dsw-menu-backdrop-filter` `none` |
+| Material | menus and panels frosted: `--dsw-menu-backdrop-filter` `blur(26px) saturate(160%)`, fills `color-mix(… 55%, transparent)` |
 | Fonts | `--dsh-font-family-text-default` resolves to Geist Mono, then Cascadia Code NF |
-| Frame transparency | frame and centre column compute to `rgba(0, 0, 0, 0)`; sidebar, status strip and composer keep paper |
-| Koi steering | none swim through the sidebar or the composer card |
-| Text legibility | koi under a message are dimmed to a 4% watermark |
+| Frame transparency | frame and centre column compute to `rgba(0, 0, 0, 0)`; every panel is a frosted sheet |
+| Titlebar | the 40 px Windows caption strip computes to a 58 % tint over `blur(22px)`, so `Application / Edit` floats on the same glass as the panels |
+| Chat glass | only two blocks are frosted: the sent bubble (`color-mix(… 72%, transparent)` + `blur(18px)`) and the code / command card (`74 %` + `blur(18px)`). The transcript column itself computes to `backdrop-filter: none`, so response prose stays crisp |
+| Koi steering | the koi swim under the glass panels rather than around them |
+| Text legibility | response prose sits on the open water; the two frosted blocks carry their own tint |
 | Frame budget | 180 frames: p50 16.7 ms, p95 16.8 ms, max 16.9 ms (60 Hz, no dropped frame) |
 | Other plugins | Task Board renders and scrolls normally under the theme |
 | Fidelity | darkest koi body pixel `rgb(114,28,14)` vs the live site's `rgb(113,26,14)` |

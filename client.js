@@ -1359,6 +1359,13 @@ const __m_engine = (() => {
  * shell needs and a landing page does not: it survives being mounted into a live
  * application, it pauses when the window is hidden or the canvas is covered, and
  * it tears every listener down on dispose.
+ *
+ * One thing it deliberately does *not* do is steer the koi around the shell's
+ * panels. On the site the prose block is the only thing over the water, so the
+ * fish avoid it and fade beneath it. In a shell every panel is a frosted sheet:
+ * the whole point of the theme is that a koi swims *under* the sidebar and the
+ * composer and reads through the blur. Steering them away would leave every
+ * glass panel empty, which is exactly the failure this module used to have.
  */
 
 
@@ -1375,41 +1382,26 @@ const INTERACTIVE =
   "a, button, input, textarea, select, label, [role='button'], [role='menuitem'], [contenteditable='true'], [data-daoho-ignore]";
 
 /**
- * Surfaces the shell paints opaque. A koi that swims under one is invisible
- * anyway, so these are only about steering: the fish turn away from them, which
- * keeps the school in the open water instead of vanishing behind a panel and
- * reappearing somewhere else.
+ * Surfaces that genuinely hide the water. Only the status strip is opaque in
+ * this theme; the sidebar, the right panel and the composer are frosted glass,
+ * so a koi under one is *meant* to be seen. Steering away from them would make
+ * the glass pointless.
  *
- * Every entry is a `data-*` hook or a `data-slot` value the shell publishes
- * itself — never a hashed CSS-module class — so a DSH update cannot silently
- * turn this list into a no-op.
+ * Every entry is a `data-*` hook the shell publishes itself — never a hashed
+ * CSS-module class — so a DSH update cannot silently turn this list into a
+ * no-op.
  */
-const OPAQUE_SELECTORS = [
-  '[data-slot="sidebar"]',
-  '[data-shell-bottom]',
-  '[data-rightbar-col]',
-  '[data-composer-card]',
-];
+const OPAQUE_SELECTORS = ['[data-shell-bottom]'];
 
 /**
- * Surfaces that sit over the water without painting their own paper, so what is
- * drawn beneath them has to be faded by hand. The shell's hero heading is the
- * only one: it is bare text in the middle of the frame.
+ * Text that sits directly on the water and therefore needs the fish faded
+ * beneath it: one block per message, plus the hero heading.
  *
- * The composer is deliberately absent. It carries an opaque card, which already
- * hides the water, and fading its whole 240px seat as well would wash out the
- * centre of the pond for no readability gain — the site's own prose block is a
- * small band near the bottom of a full-screen page, not a panel in the middle of
- * an application.
+ * The fade is gentle — 0.55, not the site's 0.15 — because in this theme the
+ * water is the subject. A koi under a paragraph should read as a fish seen
+ * through frosted glass, not as a watermark.
  */
-const TRANSLUCENT_SELECTORS = [
-  // One block per message, which is the closest thing the shell has to the
-  // site's `data-koi-avoid` prose block: the water fades under the words, not
-  // under the whole column, so the pond stays visible in the empty space
-  // between messages.
-  '[data-chat-turn]',
-  '[data-slot="conversation.header"]',
-];
+const TRANSLUCENT_SELECTORS = ['[data-chat-turn]', '[data-slot="conversation.header"]'];
 
 function mergeNearby(boxes) {
   const merged = [];
@@ -1431,7 +1423,7 @@ function mergeNearby(boxes) {
 class PondEngine {
   constructor(canvas, options = {}) {
     this.canvas = canvas;
-    this.world = new World({ budget: options.budget ?? 0.55 });
+    this.world = new World({ budget: options.budget ?? 0.7 });
     this.renderer = new KoiRenderer(canvas, { maxCells: options.maxCells ?? 26000 });
     this.raf = 0;
     this.last = 0;
@@ -1559,8 +1551,8 @@ class PondEngine {
 
   measureContent() {
     // `data-koi-avoid` is the site's own contract: steer around it *and* fade
-    // beneath it. The shell's opaque panels only steer; its translucent ones
-    // only fade. Keeping the two lists apart matters, because merging an opaque
+    // beneath it. The shell's opaque panels only steer; the text blocks only
+    // fade. Keeping the two lists apart matters, because merging an opaque
     // full-height sidebar with the composer would otherwise produce one huge box
     // that washes out half the pond.
     const own = mergeNearby(this.rectsFor([AVOID_TARGETS]));
@@ -1577,7 +1569,7 @@ class PondEngine {
       { boxes: own, floor: 0.15 },
       // The transcript: every message is text on water, so a koi has to be a
       // whisper there or the paragraph stops being readable.
-      { boxes: translucent, floor: 0.04 },
+      { boxes: translucent, floor: 0.55 },
     ]);
   }
 
@@ -1936,8 +1928,19 @@ set('--dsw-alias-file-diff-deleted-gutter', '#fbf0ee', '#1f100e');
 pair('--dsw-alias-file-diff-deleted-marker', 'critical');
 
 // ── Markdown ──────────────────────────────────────────────────────────────
-pair('--dsw-alias-markdown-code-block', 'layer1');
-pair('--dsw-alias-markdown-code-block-banner', 'layer2');
+// Code and command cards are frosted, not paper. They sit directly over the
+// pond, so an opaque fill would cut a hole in it; the stylesheet puts the blur
+// on the card itself, and the token only has to stop being opaque.
+set(
+  '--dsw-alias-markdown-code-block',
+  'color-mix(in srgb, #f8f7f4 74%, transparent)',
+  'color-mix(in srgb, #201f1c 72%, transparent)'
+);
+set(
+  '--dsw-alias-markdown-code-block-banner',
+  'color-mix(in srgb, #f2f1ed 82%, transparent)',
+  'color-mix(in srgb, #252320 80%, transparent)'
+);
 pair('--dsw-alias-markdown-inline-code', 'layer2');
 set('--dsw-alias-markdown-code-segment-selected', PAPER.control, INK.control);
 pair('--dsw-alias-markdown-code-segment-unselected', 'layer1');
@@ -1947,14 +1950,33 @@ pair('--dsw-alias-markdown-placeholder', 'subtle');
 set('--dsw-alias-turn-trigger-bg', 'var(--dsw-alias-markdown-code-block)', 'var(--dsw-alias-interactive-bg-hover)');
 set('--dsw-alias-turn-trigger-bg-hover', 'var(--dsw-alias-interactive-bg-hover)', 'var(--dsw-alias-interactive-bg-active)');
 
-// ── Menus: opaque paper, no acrylic ───────────────────────────────────────
-// This is the deliberate opposite of a glass theme. The site has one surface
-// and no material, so menus are solid paper with a hairline, and the backdrop
-// filter is switched off entirely.
-set('--dsw-menu-backdrop-filter', 'none', 'none');
-set('--dsw-menu-surface-fill', PAPER.overlay, INK.overlay);
-set('--dsw-specific-menu', PAPER.overlay, INK.overlay);
-set('--dsw-alias-menu-group-header-fill', PAPER.layer2, INK.layer2);
+// ── Menus and panels: glass over paper ────────────────────────────────────
+// The site has one opaque surface because it has one surface. A shell does
+// not: panels sit on top of the pond, and covering the water with paper hides
+// the whole point of the theme. So every surface that floats above the page is
+// a *frosted* sheet instead — a translucent paper tint plus a backdrop blur,
+// so the koi read through it as soft moving texture rather than disappearing.
+//
+// The blur is published as the token the shell already consults, and the
+// stylesheet carries the tint and the `::before` recipe that makes it safe to
+// apply (see `styles.js`: a backdrop-filter on an element that owns a fixed
+// child would drag that child into the element's own coordinate space).
+set('--dsw-menu-backdrop-filter', 'blur(26px) saturate(160%)', 'blur(26px) saturate(160%)');
+set(
+  '--dsw-menu-surface-fill',
+  'color-mix(in srgb, #fbfaf7 55%, transparent)',
+  'color-mix(in srgb, #2e2c28 58%, transparent)'
+);
+set(
+  '--dsw-specific-menu',
+  'color-mix(in srgb, #fbfaf7 55%, transparent)',
+  'color-mix(in srgb, #2e2c28 58%, transparent)'
+);
+set(
+  '--dsw-alias-menu-group-header-fill',
+  'color-mix(in srgb, #f2f1ed 78%, transparent)',
+  'color-mix(in srgb, #252320 82%, transparent)'
+);
 pair('--dsw-alias-menu-icon', 'textSecondary');
 set('--dsw-alias-tooltip-bg', '#262523', '#2e2c28');
 set('--dsw-alias-tooltip-key-bg', 'rgba(255, 247, 240, 0.12)', 'rgba(255, 247, 240, 0.1)');
@@ -2022,8 +2044,18 @@ pair('--dsw-specific-input-major', 'composer');
 set('--dsw-specific-login-input', PAPER.layer1, INK.layer1);
 set('--dsw-specific-selector', PAPER.layer2, INK.layer3);
 set('--dsw-specific-tip', PAPER.layer1, INK.layer2);
-set('--dsw-specific-bubble', '#ecebe6', '#2b2925');
-set('--dsw-specific-bubble-highlight', '#e3e1db', '#34312c');
+// The sent message is a sheet of glass, not a slab of paper: it is the one
+// block in the transcript the user "owns", and it sits over the water.
+set(
+  '--dsw-specific-bubble',
+  'color-mix(in srgb, #ecebe6 72%, transparent)',
+  'color-mix(in srgb, #2b2925 70%, transparent)'
+);
+set(
+  '--dsw-specific-bubble-highlight',
+  'color-mix(in srgb, #e3e1db 78%, transparent)',
+  'color-mix(in srgb, #34312c 76%, transparent)'
+);
 
 // ── Settings and onboarding ───────────────────────────────────────────────
 set('--dsw-alias-settings-card-fill', PAPER.layer1, INK.layer1);
@@ -2140,20 +2172,22 @@ const __m_styles = (() => {
  *  - load a webfont (Geist Mono is vendored, because Windows does not have it);
  *  - place the pond's canvas in the paint order;
  *  - make the shell's frame transparent so the water shows through it;
+ *  - build a frosted panel, because the blur has to live on a pseudo-element;
  *  - restate the site's link treatment, which is an underline rather than a
  *    colour, or its selection colour.
  *
- * Everything here is scoped to `body` or to a `data-*` hook the shell already
- * publishes — never to a hashed CSS-module class — so a DSH update cannot
+ * Everything here is scoped to `body`, `html body`, or to a `data-*` hook the
+ * shell publishes — never to a hashed CSS-module class — so a DSH update cannot
  * silently turn one of these rules into a stray outline somewhere else.
  *
- * Four declarations carry `!important`, and only four. They are the ones that
- * remove a *painted surface*: the body fill, the frame fill, the centre column
- * fill and the composer fill. The shell declares those with a two-class
- * selector under `[data-windows-titlebar]` (`[data-windows-titlebar] .frame`),
- * which outranks anything a theme can write without also naming a hashed class.
- * Removing the surface is the whole point of a transparent-pond theme, so the
- * flag is honest here rather than a shortcut; everything else stays flag-free.
+ * Four declarations carry `!important`, and only four kinds. They are the ones
+ * that remove a *painted surface*: the body fill, the frame fill, the centre
+ * column fill, and the fills of the panels that become glass. The shell declares
+ * those with a two-class selector under `[data-windows-titlebar]`
+ * (`[data-windows-titlebar] .frame`), which outranks anything a theme can write
+ * without also naming a hashed class. Removing the surface is the whole point of
+ * a transparent-pond theme, so the flag is honest here rather than a shortcut;
+ * every purely stylistic rule stays flag-free.
  */
 
 // Geist Mono 400 and Geist Sans 400/500, base64 WOFF2. SIL Open Font License
@@ -2207,7 +2241,7 @@ html body {
 /* ── The frame ────────────────────────────────────────────────────────────
    Lifted one level above the canvas and made transparent, so the water shows
    wherever a panel does not paint its own paper. Only the frame's own fill is
-   removed: the sidebar, the status strip and the composer keep theirs below.
+   removed: the panels keep theirs below.
 
    On Windows the shell paints the frame with \`--dsw-specific-sidebar-fill\`
    because that fill also backs the titlebar strip. The strip is painted by the
@@ -2219,11 +2253,30 @@ body [data-slot="root"] > div {
   background-color: transparent !important;
 }
 
+/* ── The Windows titlebar strip ───────────────────────────────────────────
+   The strip that carries the window caption and the \`Application / Edit\` menu
+   is the frame's \`::before\`: 40px tall, \`-webkit-app-region: drag\`, painted
+   with \`--dsw-specific-sidebar-fill\`. Left alone it is a solid paper band
+   across the top of an otherwise glass window.
+
+   It becomes a frosted sheet like the panels. The menu lives in a shadow root,
+   so its buttons cannot be restyled from here, but it inherits the theme's font
+   and label tokens and floats above this strip — the blur is what makes the two
+   read as one surface.
+
+   The pseudo-element owns no children, so the containing-block hazard that
+   forced the panels onto \`::before\` does not apply, and the drag region is
+   untouched. */
+html[data-windows-titlebar] body [data-slot="root"] > div::before {
+  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 58%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+}
+
 /* ── Transparency chain ───────────────────────────────────────────────────
    The centre column and the transcript are opaque in the stock theme, which
-   would hide the pond completely. They become transparent here; the sidebar,
-   the status strip and the composer keep solid paper because text sits
-   directly on them.
+   would hide the pond completely. They become transparent here; the panels
+   become glass further down.
 
    The column classes are hashed CSS-module names, so the centre column is
    reached through the \`data-slot="main"\` hook it contains, and the transcript
@@ -2241,25 +2294,81 @@ body div:has(> [data-slot="main"]) {
   background-color: transparent !important;
 }
 
-/* ── Content surfaces that stay solid ─────────────────────────────────────
-   Navigation, the status strip and the composer are read at a glance, so they
-   keep paper. They are also the boxes the koi steer around.
+/* ── Glass panels ─────────────────────────────────────────────────────────
+   The site can cover its water with paper because it has exactly one surface.
+   A shell cannot: navigation, the composer and the side panels all float over
+   the pond, and painting them opaque hides the theme entirely. So each one is a
+   frosted sheet — a translucent paper tint over a backdrop blur — and the koi
+   read through it as slow moving texture.
 
-   Scoped through \`html\` as well, so an earlier material theme that tinted the
-   navigation pane (Mica Alt) cannot keep its gradient once this theme is
-   active. */
-html body [data-slot="sidebar"] {
-  background-color: var(--dsw-specific-sidebar-fill);
-  background-image: none;
+   Two rules make this safe, and both matter:
+
+   1. **The blur is always on a \`::before\`, never on the panel.** A
+      \`backdrop-filter\` makes its element a containing block for \`position:
+      fixed\` descendants. The sidebar owns a fixed collapse button; blurring the
+      column directly drags that button from y=6 to y=46, out of the titlebar and
+      over the first row. The pseudo-element keeps the blur in its own layer, so
+      the button never moves.
+
+   2. **The panel's own fill is cleared, not just recoloured.** The shell paints
+      the sidebar column, the sidebar root, the right pane and the composer card
+      each with their own background; leaving any of them opaque defeats the blur
+      beneath it.
+
+   The tints are strong enough to hold body text at readable contrast while
+   still letting a koi's colour through. */
+html body [data-slot="root"] > div > div:nth-child(1),
+html body [data-slot="sidebar"],
+html body [data-slot="sidebar"] > *,
+html body [data-rightbar-col],
+html body [data-rightbar-col] > *,
+html body [data-rightbar-col] section,
+html body [data-composer-card] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html body [data-slot="root"] > div > div:nth-child(1),
+html body [data-rightbar-col],
+html body [data-composer-card] {
+  position: relative;
+}
+
+html body [data-slot="root"] > div > div:nth-child(1)::before,
+html body [data-rightbar-col]::before,
+html body [data-composer-card]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+html body [data-slot="root"] > div > div:nth-child(1)::before {
+  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 40%, transparent);
+}
+html body [data-rightbar-col]::before {
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 40%, transparent);
+}
+html body [data-composer-card]::before {
+  border-radius: inherit;
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 34%, transparent);
+}
+
+/* The sidebar keeps its hairline, drawn above the glass. */
+html body [data-slot="root"] > div > div:nth-child(1) {
   border-right: 1px solid var(--dsw-alias-border-l1);
 }
+
+/* The status strip is a 1px rule, not a surface, so it stays paper and the rule
+   reads as a rule. */
 html body [data-shell-bottom] {
   background-color: var(--dsw-alias-bg-base);
   border-top: 1px solid var(--dsw-alias-border-l1);
 }
+
 html body [data-composer-card] {
-  background-color: var(--dsw-alias-bg-base) !important;
-  background-image: none !important;
   border: 1px solid var(--dsw-alias-border-l2);
   box-shadow: var(--dsw-shadow-lv2);
 }
@@ -2267,6 +2376,41 @@ html body [data-composer-card] {
    would fight the pond. */
 html body [data-composer-card]:focus-within {
   border-color: var(--dsw-alias-border-l3);
+}
+
+/* ── The composer's paper curtain ─────────────────────────────────────────
+   The shell fades the transcript into the composer with a
+   \`linear-gradient(transparent, paper 36px)\` painted on the composer's seat.
+   That gradient is the one thing that still hides the water there: it covers the
+   last 130px of the transcript with solid paper, and no blur below it can show
+   through. Removing it lets the last message sit directly over the pond. */
+html body [data-composer-seat] {
+  background-image: none !important;
+}
+
+/* ── Two frosted blocks in the transcript ─────────────────────────────────
+   The transcript itself stays clear water, so the response prose is read
+   straight off the page — the way the site reads its own text. Only two blocks
+   get a sheet of glass, because only two are bounded surfaces rather than
+   flowing text:
+
+   - the sent message bubble, the one block the user owns;
+   - the code / command card, where monospace output would otherwise sit on
+     moving glyphs.
+
+   The fills are made translucent in the token layer; the blur lives here. Both
+   elements are self-contained (no \`position: fixed\` descendant), so the filter
+   can sit on the element instead of a pseudo-element.
+
+   The command card's output pane is the shell's \`ioCard\`; its class is hashed,
+   so it is matched on the module-name suffix the same way the bubble is. If a
+   future build renames it, the card simply keeps its paper fill — no layout
+   depends on this rule. */
+html body [class*="_bubble"],
+html body .md-code-block,
+html body [class*="_ioCard"] {
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
 }
 
 /* ── Link treatment ───────────────────────────────────────────────────────
@@ -2301,16 +2445,6 @@ body :focus-visible {
   outline-offset: 1px;
 }
 
-/* ── Menus and popovers ───────────────────────────────────────────────────
-   Paper, not glass: the menu fill is opaque and the acrylic blur is switched
-   off in the token layer. */
-body [data-menu-material],
-body [role="menu"],
-body [role="listbox"] {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
 /* ── Scrollbars ───────────────────────────────────────────────────────────
    Thinner than the stock 5px, and warm. */
 body {
@@ -2320,8 +2454,8 @@ body {
 
 /* ── Reduced transparency ─────────────────────────────────────────────────
    A user who asked Windows for less transparency gets flat paper: the pond
-   stops painting (the engine clears it) and the frame regains its own fill so
-   nothing depends on the canvas. */
+   stops painting (the engine clears it) and every glass panel regains its own
+   fill, so nothing depends on the canvas. */
 @media (prefers-reduced-transparency: reduce) {
   #daoho-pond-canvas { display: none; }
   body [data-slot="root"] > div {
@@ -2330,12 +2464,44 @@ body {
   body div:has(> [data-slot="main"]) {
     background-color: var(--dsw-alias-bg-base) !important;
   }
+  html body [data-slot="root"] > div > div:nth-child(1),
+  html body [data-rightbar-col],
+  html body [data-composer-card] {
+    background-color: var(--dsw-alias-bg-base) !important;
+  }
+  html body [data-slot="root"] > div > div:nth-child(1)::before,
+  html body [data-rightbar-col]::before,
+  html body [data-composer-card]::before {
+    display: none;
+  }
+  html body [class*="_bubble"],
+  html body .md-code-block,
+  html body [class*="_ioCard"] {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  html[data-windows-titlebar] body [data-slot="root"] > div::before {
+    background-color: var(--dsw-specific-sidebar-fill);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 /* ── Print ────────────────────────────────────────────────────────────────
    The pond is decoration; paper is what gets printed. */
 @media print {
   #daoho-pond-canvas { display: none; }
+  html body [data-slot="root"] > div > div:nth-child(1)::before,
+  html body [data-rightbar-col]::before,
+  html body [data-composer-card]::before {
+    display: none;
+  }
+  html body [class*="_bubble"],
+  html body .md-code-block,
+  html body [class*="_ioCard"] {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 `;
 }

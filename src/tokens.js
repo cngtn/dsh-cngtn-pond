@@ -273,8 +273,19 @@ set('--dsw-alias-file-diff-deleted-gutter', '#fbf0ee', '#1f100e');
 pair('--dsw-alias-file-diff-deleted-marker', 'critical');
 
 // ── Markdown ──────────────────────────────────────────────────────────────
-pair('--dsw-alias-markdown-code-block', 'layer1');
-pair('--dsw-alias-markdown-code-block-banner', 'layer2');
+// Code and command cards are frosted, not paper. They sit directly over the
+// pond, so an opaque fill would cut a hole in it; the stylesheet puts the blur
+// on the card itself, and the token only has to stop being opaque.
+set(
+  '--dsw-alias-markdown-code-block',
+  'color-mix(in srgb, #f8f7f4 74%, transparent)',
+  'color-mix(in srgb, #201f1c 72%, transparent)'
+);
+set(
+  '--dsw-alias-markdown-code-block-banner',
+  'color-mix(in srgb, #f2f1ed 82%, transparent)',
+  'color-mix(in srgb, #252320 80%, transparent)'
+);
 pair('--dsw-alias-markdown-inline-code', 'layer2');
 set('--dsw-alias-markdown-code-segment-selected', PAPER.control, INK.control);
 pair('--dsw-alias-markdown-code-segment-unselected', 'layer1');
@@ -284,14 +295,33 @@ pair('--dsw-alias-markdown-placeholder', 'subtle');
 set('--dsw-alias-turn-trigger-bg', 'var(--dsw-alias-markdown-code-block)', 'var(--dsw-alias-interactive-bg-hover)');
 set('--dsw-alias-turn-trigger-bg-hover', 'var(--dsw-alias-interactive-bg-hover)', 'var(--dsw-alias-interactive-bg-active)');
 
-// ── Menus: opaque paper, no acrylic ───────────────────────────────────────
-// This is the deliberate opposite of a glass theme. The site has one surface
-// and no material, so menus are solid paper with a hairline, and the backdrop
-// filter is switched off entirely.
-set('--dsw-menu-backdrop-filter', 'none', 'none');
-set('--dsw-menu-surface-fill', PAPER.overlay, INK.overlay);
-set('--dsw-specific-menu', PAPER.overlay, INK.overlay);
-set('--dsw-alias-menu-group-header-fill', PAPER.layer2, INK.layer2);
+// ── Menus and panels: glass over paper ────────────────────────────────────
+// The site has one opaque surface because it has one surface. A shell does
+// not: panels sit on top of the pond, and covering the water with paper hides
+// the whole point of the theme. So every surface that floats above the page is
+// a *frosted* sheet instead — a translucent paper tint plus a backdrop blur,
+// so the koi read through it as soft moving texture rather than disappearing.
+//
+// The blur is published as the token the shell already consults, and the
+// stylesheet carries the tint and the `::before` recipe that makes it safe to
+// apply (see `styles.js`: a backdrop-filter on an element that owns a fixed
+// child would drag that child into the element's own coordinate space).
+set('--dsw-menu-backdrop-filter', 'blur(26px) saturate(160%)', 'blur(26px) saturate(160%)');
+set(
+  '--dsw-menu-surface-fill',
+  'color-mix(in srgb, #fbfaf7 55%, transparent)',
+  'color-mix(in srgb, #2e2c28 58%, transparent)'
+);
+set(
+  '--dsw-specific-menu',
+  'color-mix(in srgb, #fbfaf7 55%, transparent)',
+  'color-mix(in srgb, #2e2c28 58%, transparent)'
+);
+set(
+  '--dsw-alias-menu-group-header-fill',
+  'color-mix(in srgb, #f2f1ed 78%, transparent)',
+  'color-mix(in srgb, #252320 82%, transparent)'
+);
 pair('--dsw-alias-menu-icon', 'textSecondary');
 set('--dsw-alias-tooltip-bg', '#262523', '#2e2c28');
 set('--dsw-alias-tooltip-key-bg', 'rgba(255, 247, 240, 0.12)', 'rgba(255, 247, 240, 0.1)');
@@ -359,8 +389,18 @@ pair('--dsw-specific-input-major', 'composer');
 set('--dsw-specific-login-input', PAPER.layer1, INK.layer1);
 set('--dsw-specific-selector', PAPER.layer2, INK.layer3);
 set('--dsw-specific-tip', PAPER.layer1, INK.layer2);
-set('--dsw-specific-bubble', '#ecebe6', '#2b2925');
-set('--dsw-specific-bubble-highlight', '#e3e1db', '#34312c');
+// The sent message is a sheet of glass, not a slab of paper: it is the one
+// block in the transcript the user "owns", and it sits over the water.
+set(
+  '--dsw-specific-bubble',
+  'color-mix(in srgb, #ecebe6 72%, transparent)',
+  'color-mix(in srgb, #2b2925 70%, transparent)'
+);
+set(
+  '--dsw-specific-bubble-highlight',
+  'color-mix(in srgb, #e3e1db 78%, transparent)',
+  'color-mix(in srgb, #34312c 76%, transparent)'
+);
 
 // ── Settings and onboarding ───────────────────────────────────────────────
 set('--dsw-alias-settings-card-fill', PAPER.layer1, INK.layer1);

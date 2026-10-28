@@ -117,8 +117,13 @@ if (layer) {
   const shape = layer.tokens['--dsw-corner-shape'];
   check(shape && shape.light === 'round', 'corners are arcs, not squircles');
 
-  const menu = layer.tokens['--dsw-menu-backdrop-filter'];
-  check(menu && menu.light === 'none', 'menus are paper, not acrylic');
+  // Panels and flyouts are frosted, not opaque: the pond has to read through
+  // them or the theme's whole subject is hidden. The blur is published as the
+  // token the shell consults, and the surface fill stays translucent.
+  const blur = layer.tokens['--dsw-menu-backdrop-filter'];
+  check(blur && /blur\(/.test(blur.light), 'menus are frosted (blur published as a token)');
+  const fill = layer.tokens['--dsw-menu-surface-fill'];
+  check(fill && /transparent|color-mix/.test(fill.light), 'menu fill is translucent, not opaque');
 }
 
 check(disposers.length === 3, 'three effects registered', String(disposers.length));
