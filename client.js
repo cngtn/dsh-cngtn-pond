@@ -2937,6 +2937,17 @@ function persistSettings(next) {
 /** The live engine, so the panel and the console API can retune it in place. */
 let activeEngine = null;
 
+/** What the settings wiring managed to reach; surfaced by `cngtnPond.diag()`. */
+const diag = {
+  slots: false,
+  configForms: false,
+  primitives: false,
+  formModel: false,
+  bundleConfigRegistered: false,
+  settingsButtonRegistered: false,
+  notes: [],
+};
+
 /** Apply a settings patch to the running pond and remember it. */
 function applySettings(patch) {
   const next = normalizeSettings({ ...readStored(), ...patch });
@@ -3195,6 +3206,8 @@ function exposeApi() {
     reset: () => applySettings(DEFAULTS),
     palettes: PALETTE_PRESETS,
     varieties: VARIETIES,
+    /** What the settings wiring reached, for support and for the tests. */
+    diag: () => ({ ...diag, notes: [...diag.notes] }),
     /** The live school, for checking what the pond actually drew. */
     list: () =>
       activeEngine === null
@@ -3231,11 +3244,15 @@ function registerBundleConfig(ctx) {
     console.warn('[cngtn-pond] settings services unavailable:', error && error.message);
     return;
   }
-  if (!slots || typeof slots.register !== 'function') {
+  diag.slots = !!slots && typeof slots.register === 'function';
+  diag.configForms = !!configForms && typeof configForms.get === 'function';
+  if (!diag.slots) {
+    diag.notes.push('no slots service');
     console.warn('[cngtn-pond] no slots service; pond settings stay in the floating panel');
     return;
   }
-  if (!configForms || typeof configForms.get !== 'function') {
+  if (!diag.configForms) {
+    diag.notes.push('no configForms service');
     console.warn('[cngtn-pond] no configForms service; pond settings stay in the floating panel');
     return;
   }
@@ -3246,9 +3263,11 @@ function registerBundleConfig(ctx) {
     React = require('react');
     primitives = require('@deepseek-ai/dsh-client-ui-primitives');
   } catch (error) {
+    diag.notes.push('primitives: ' + (error && error.message));
     console.warn('[cngtn-pond] settings form unavailable:', error && error.message);
     return;
   }
+  diag.primitives = true;
   const { SettingsForm, SettingsFormModel, settingsNumberField, settingsTextField } = primitives;
   if (!SettingsForm || !SettingsFormModel || !settingsNumberField || !settingsTextField) {
     console.warn('[cngtn-pond] settings primitives missing; using the floating panel only');
@@ -3282,6 +3301,7 @@ function registerBundleConfig(ctx) {
       palette: model.field('palette'),
     }));
 
+    diag.formModel = true;
     ctx.effect(() => () => model.dispose(), 'cngtn-pond: config form');
 
     function PondConfig(props) {
@@ -3348,7 +3368,9 @@ function registerBundleConfig(ctx) {
         PondConfig
       )
     );
+    diag.bundleConfigRegistered = true;
   } catch (error) {
+    diag.notes.push('register: ' + (error && error.message));
     console.warn('[cngtn-pond] bundle config registration failed:', error && error.message);
   }
 }
