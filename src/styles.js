@@ -208,15 +208,23 @@ html body [data-composer-card]::before {
    The shadow is what makes the card read as *above* the water rather than cut
    out of it, and it is the only shadow the theme gives a panel. */
 html body [data-slot="root"] > div > div:nth-child(1) {
-  padding: 8px;
-  border-radius: 14px;
+  padding: 8px 8px 14px 14px;
   overflow: hidden;
-  border: 0.5px solid var(--dsw-alias-border-l1);
-  box-shadow: var(--dsw-shadow-lv3);
 }
 
+/* The card *is* the pseudo-element, and it is inset from the column on all four
+   sides — more on the left and the bottom, where the window edge is. The column
+   keeps the full grid track, so the resize handle and the centre column stay
+   where the shell put them; only the painted card moves inward.
+
+   The chrome lives here rather than on the column for the same reason: a border
+   or a shadow on the column would sit at x=0 and read as a seam against the
+   screen edge instead of as a floating edge. */
 html body [data-slot="root"] > div > div:nth-child(1)::before {
+  inset: 8px 8px 14px 14px;
   border-radius: 14px;
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  box-shadow: var(--dsw-shadow-lv3);
   background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 55%, transparent);
 }
 
@@ -225,13 +233,13 @@ html body [data-slot="root"] > div > div:nth-child(1)::before {
    shell marks the frame, not the column, so the rule reaches down from there. */
 html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1) {
   padding: 0;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
 }
 
 html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1)::before {
+  inset: 0;
+  border: 0;
   border-radius: 0;
+  box-shadow: none;
   background-color: transparent;
 }
 
