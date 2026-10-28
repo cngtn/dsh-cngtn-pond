@@ -220,6 +220,21 @@ html body [data-slot="root"] > div > div:nth-child(1)::before {
   background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 55%, transparent);
 }
 
+/* Collapsed, the column is an 18px rail holding one expand button. A card there
+   would be a sliver, so the card styling is dropped and the rail stays bare. The
+   shell marks the frame, not the column, so the rule reaches down from there. */
+html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1) {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html body [data-slot="root"] > div[data-sidebar-collapsed] > div:nth-child(1)::before {
+  border-radius: 0;
+  background-color: transparent;
+}
+
 /* The inner root is a fixed-width box; let it follow the padded cell. */
 html body [data-slot="sidebar"] > div {
   width: 100% !important;
