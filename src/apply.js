@@ -201,6 +201,18 @@ function label(text) {
   return el;
 }
 
+/** The count the pond is actually drawing, so the slider never lies. */
+function liveFishCount(fallback) {
+  if (activeEngine !== null) {
+    try {
+      return activeEngine.world.koi.length;
+    } catch {
+      // fall through to the stored value
+    }
+  }
+  return fallback;
+}
+
 function openPanel() {
   if (panel !== null && panel.isConnected) {
     panel.remove();
@@ -237,7 +249,7 @@ function openPanel() {
   fish.min = '3';
   fish.max = '12';
   fish.step = '1';
-  fish.value = String(current.fish ?? 5);
+  fish.value = String(current.fish ?? liveFishCount(5));
   fish.style.cssText = 'flex:1;accent-color:var(--dsw-alias-brand-primary)';
   const fishValue = document.createElement('span');
   fishValue.textContent = fish.value;
@@ -279,6 +291,7 @@ function openPanel() {
   young.style.accentColor = 'var(--dsw-alias-brand-primary)';
   young.addEventListener('change', () => applySettings({ young: young.checked }));
   youngLabel.append(young, document.createTextNode('Two young koi'));
+  youngRow.append(youngLabel);
 
   card.append(head, fishRow, paletteRow, youngRow);
   document.body.append(card);
@@ -291,7 +304,7 @@ function refreshPanel() {
   const current = normalizeSettings(readStored());
   const [fish, palette, young] = panel.querySelectorAll('input[type="range"], select, input[type="checkbox"]');
   if (fish) {
-    fish.value = String(current.fish ?? 5);
+    fish.value = String(current.fish ?? liveFishCount(Number(fish.value)));
     const value = fish.nextElementSibling;
     if (value) value.textContent = fish.value;
   }
