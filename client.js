@@ -3270,8 +3270,9 @@ function registerBundleConfig(ctx) {
     return;
   }
   diag.primitives = true;
-  const { SettingsForm, SettingsFormModel, settingsNumberField, settingsTextField } = primitives;
-  if (!SettingsForm || !SettingsFormModel || !settingsNumberField || !settingsTextField) {
+  const { SettingsForm, SettingsFormModel, SettingsValueField, settingsNumberField, settingsTextField } = primitives;
+  if (!SettingsForm || !SettingsFormModel || !SettingsValueField || !settingsNumberField || !settingsTextField) {
+    diag.notes.push('settings primitives incomplete');
     console.warn('[cngtn-pond] settings primitives missing; using the floating panel only');
     return;
   }
@@ -3297,6 +3298,8 @@ function registerBundleConfig(ctx) {
       },
     ]);
 
+    // The bound snapshot carries the shell flags *and* one entry per field, which
+    // is exactly what \`SettingsForm\` and \`SettingsValueField\` read.
     const state = model.bind(() => ({
       ...model.shell(),
       fish: model.field('fish'),
@@ -3306,9 +3309,22 @@ function registerBundleConfig(ctx) {
     diag.formModel = true;
     ctx.effect(() => () => model.dispose(), 'cngtn-pond: config form');
 
+    const LABELS = {
+      title: 'Pond',
+      description: 'How many koi swim behind the shell, and which colours they carry.',
+      save: 'Save',
+      saving: 'Saving…',
+      saveFailed: 'Could not save. Try again.',
+      unavailable: 'Settings are unavailable right now.',
+      readOnly: 'This profile is read-only.',
+      discard: 'Discard',
+      reset: 'Reset',
+      overridden: 'Overridden',
+    };
+
     function PondConfig(props) {
       const view = props && props.view;
-      const snapshot = React.useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot);
+      const snapshot = props.usePondForm((value) => value);
 
       if (view === 'summary') {
         return React.createElement(
@@ -3320,47 +3336,36 @@ function registerBundleConfig(ctx) {
         );
       }
 
-      const actions = model.actions();
-      const field = (label, key, extra) =>
-        React.createElement(
-          'label',
-          { style: { display: 'block', marginBottom: '10px' } },
-          React.createElement('span', { style: { display: 'block', marginBottom: '4px' } }, label),
-          React.createElement('input', {
-            type: extra && extra.type ? extra.type : 'text',
-            min: extra && extra.min,
-            max: extra && extra.max,
-            step: extra && extra.step,
-            value: snapshot[key] ? snapshot[key].text : '',
-            onChange: (event) => actions.edit(key, event.target.value),
-            style: {
-              width: '100%',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              border: '0.5px solid var(--dsw-alias-border-l2)',
-              background: 'var(--dsw-alias-bg-layer-1)',
-              color: 'inherit',
-              font: 'inherit',
-            },
-          })
-        );
+      const disabled = !snapshot.writable || snapshot.saving;
 
       return React.createElement(
         SettingsForm,
         {
-          labels: {
-            title: 'Pond',
-            description: 'How many koi swim behind the shell, and which colours they carry.',
-            save: 'Save',
-            discard: 'Discard',
-            reset: 'Reset',
-          },
-          shell: snapshot,
-          onSave: actions.save,
-          onDiscard: actions.discard,
+          labels: LABELS,
+          state: snapshot,
+          onSave: props.save,
+          onDiscard: props.discard,
         },
-        field('Fish (3–12)', 'fish', { type: 'number', min: 3, max: 12, step: 1 }),
-        field('Colour — mixed | warm | cool | mono', 'palette')
+        React.createElement(SettingsValueField, {
+          id: 'cngtn-pond-fish',
+          label: 'Fish (3–12)',
+          text: snapshot.fish ? snapshot.fish.text : '',
+          numeric: true,
+          invalid: snapshot.fish ? snapshot.fish.invalid : false,
+          invalidLabel: 'Enter a whole number between 3 and 12.',
+          disabled,
+          onEdit: (value) => props.edit('fish', value),
+        }),
+        React.createElement(SettingsValueField, {
+          id: 'cngtn-pond-palette',
+          label: 'Colour',
+          text: snapshot.palette ? snapshot.palette.text : '',
+          hint: 'mixed · warm · cool · mono',
+          invalid: snapshot.palette ? snapshot.palette.invalid : false,
+          invalidLabel: 'Use one of: mixed, warm, cool, mono.',
+          disabled,
+          onEdit: (value) => props.edit('palette', value),
+        })
       );
     }
 
@@ -3369,7 +3374,13 @@ function registerBundleConfig(ctx) {
       diag.injectCallbackRan = true;
       try {
         const dispose = slots.register(
-          { name: 'plugins.bundle.config', key: '@cngtn/dsh-cngtn-pond' },
+          {
+            name: 'plugins.bundle.config',
+            key: '@cngtn/dsh-cngtn-pond',
+            // The framework turns each hook into a \`useXxx\` prop and spreads the
+            // actions alongside it — the same face the shipped bundle forms use.
+            inject: () => ({ hooks: { pondForm: state }, ...model.actions() }),
+          },
           PondConfig
         );
         diag.bundleConfigRegistered = true;
