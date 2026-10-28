@@ -2944,6 +2944,9 @@ let activeEngine = null;
  */
 let hostScope = null;
 
+/** The settings the engine is currently drawing, so folds can skip no-ops. */
+let appliedSettings = null;
+
 /** What the settings wiring managed to reach; surfaced by `cngtnPond.diag()`. */
 const diag = {
   slots: false,
@@ -2958,32 +2961,56 @@ const diag = {
   notes: [],
 };
 
-/** Apply a settings patch to the running pond and remember it. */
+/**
+ * Apply a settings patch.
+ *
+ * When a Host config scope is reachable it is the **single writer**: the patch
+ * goes there, and the subscription folds the accepted value back into the pond.
+ * Applying locally as well would race that round-trip — with two changes in
+ * flight, a stale fold could land last and win, which is exactly what a rapid
+ * palette cycle used to do.
+ *
+ * Without a Host scope (a bare web profile, or the settings service missing) the
+ * patch is applied directly, so the panel and console still work.
+ */
 function applySettings(patch) {
   const next = normalizeSettings({ ...readStored(), ...patch });
   persistSettings(next);
-  applyToEngine(next);
-  // Write through the Host so the plugin page's form and the floating panel
-  // never disagree. Fire and forget: the subscription below re-applies the
-  // accepted value, and a rejected write simply leaves the cached one in place.
+
+  let wroteToHost = false;
   if (hostScope !== null) {
     try {
       const snapshot = hostScope.getSnapshot();
       if (snapshot && snapshot.writable) {
-        for (const [field, value] of Object.entries(patch)) {
+        for (const field of Object.keys(patch)) {
           if (field in next) hostScope.set(field, next[field]);
         }
+        wroteToHost = true;
       }
     } catch (error) {
       console.warn('[cngtn-pond] host write failed:', error && error.message);
     }
   }
+
+  if (!wroteToHost) applyToEngine(next);
   refreshPanel();
   return next;
 }
 
 /** Push a normalized settings object into the live engine. */
 function applyToEngine(next) {
+  // `setOptions` re-seeds the school, so an identical value must not be applied
+  // twice: a fold that echoes what we just wrote would otherwise restart the
+  // pond on every keystroke.
+  if (
+    appliedSettings !== null &&
+    appliedSettings.fish === next.fish &&
+    appliedSettings.young === next.young &&
+    appliedSettings.palette === next.palette
+  ) {
+    return;
+  }
+  appliedSettings = { fish: next.fish, young: next.young, palette: next.palette };
   if (activeEngine === null) return;
   try {
     activeEngine.setOptions(next);
