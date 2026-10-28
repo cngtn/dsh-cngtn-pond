@@ -28,59 +28,6 @@ Three layers, registered through the sanctioned third-party-theme extension poin
 
 Disabling the plugin removes all three and the GUI returns to its stock design.
 
-## Tuning the pond
-
-Three settings, all live — no restart, no reload:
-
-| Setting | Range | What it does |
-|---|---|---|
-| **Fish** | 3–12 | The *total* school. Young koi are part of that number, never extra, so the slider is honest. |
-| **Colour** | Mixed / Warm / Cool / Ink only | Which pigments the fish draw from: the full range, reds-gold-yellow, blue-silver, or ink alone. |
-| **Two young koi** | on / off | The small fish that keep to the deep water, for a sense of depth. |
-
-Open the panel from **Settings → Pond**, or from the console:
-
-```js
-cngtnPond.open()                                  // the panel
-cngtnPond.set({ fish: 9, palette: 'warm' })       // apply and remember
-cngtnPond.get()                                   // { fish, young, palette }
-cngtnPond.list()                                  // the live school
-cngtnPond.reset()                                 // back to the defaults
-```
-
-Choices are stored in `localStorage` under `cngtn-pond:settings`, so they survive a
-restart. A profile can also ship a house style by setting the bundle's `config`
-in `cordis.patch.yml`:
-
-```yaml
-- insert:
-    - id: cngtn-pond
-      name: '@cngtn/dsh-cngtn-pond'
-      config:
-        fish: 6
-        palette: warm
-        young: true
-```
-
-### Seven varieties
-
-The school is stocked the way a real pond is: mostly white-and-red, a few
-patterned, and one or two metallic or blue fish for depth.
-
-| Variety | Look |
-|---|---|
-| kohaku | white, accent head and two or three saddles |
-| sanke | kohaku plus small black spots |
-| tancho | white, a single accent disc on the crown |
-| showa | black back, accent and white patches |
-| ogon | one metallic colour, paler along the belly |
-| asagi | slate back, accent along the belly |
-| bekko | white, black spots only |
-
-Each fish carries its own pigment, and the renderer derives a six-stop ramp from
-it — shadowed at the flanks, lit across the back — so a gold koi is shaded by the
-same logic as a red one instead of being a recoloured copy.
-
 ## Why it looks the way it does
 
 The design system is four colours, one typeface and almost no decoration:
@@ -134,55 +81,91 @@ Three things did change, because a shell is not a landing page:
    and the fish would be trapped in that corner forever. The world therefore
    re-seeds whenever the box changes by more than a quarter.
 
+### Seven varieties
+
+The school is stocked the way a real pond is: mostly white-and-red, a few
+patterned, and one or two metallic or blue fish for depth.
+
+| Variety | Look |
+|---|---|
+| kohaku | white, accent head and two or three saddles |
+| sanke | kohaku plus small black spots |
+| tancho | white, a single accent disc on the crown |
+| showa | black back, accent and white patches |
+| ogon | one metallic colour, paler along the belly |
+| asagi | slate back, accent along the belly |
+| bekko | white, black spots only |
+
+Each fish carries its own pigment, and the renderer derives a six-stop ramp from
+it — shadowed at the flanks, lit across the back — so a gold koi is shaded by the
+same logic as a red one instead of being a recoloured copy.
+
 ## Install
 
-One command, no clone:
+```powershell
+dsh plugin --profile desktop add github:cngtn/dsh-cngtn-pond
+```
+
+That is the same command shape as any other DSH plugin: `dsh plugin` forwards to
+pnpm inside the profile, so the package is installed, its `dsh.bundle` patch is
+read, and the bundle is appended to `dsh.profile.bundles` automatically.
+
+Once the package is on npm, the versioned form works too:
 
 ```powershell
-npx github:cngtn/dsh-cngtn-pond
+dsh plugin --profile desktop add @cngtn/dsh-cngtn-pond@latest
 ```
 
-It installs into the `desktop` profile by default:
+To pin an exact revision of the repository:
 
 ```powershell
-npx github:cngtn/dsh-cngtn-pond --list              # profiles on this machine
-npx github:cngtn/dsh-cngtn-pond --profile web       # a different profile
-npx github:cngtn/dsh-cngtn-pond --uninstall         # back to the stock design
+dsh plugin --profile desktop add github:cngtn/dsh-cngtn-pond#<commit>
 ```
 
-The installer copies the bundle to `~/.dsh/themes/dsh-cngtn-pond`, junctions it
-into the profile's `node_modules`, and records it as a `file:` dependency plus a
-bundle entry. The profile manifest is backed up before every write. `DSH_HOME`
-overrides `~/.dsh` for a non-default installation.
+Remove it the same way:
 
-Then restart DeepSeek Harness. The bundle list it writes looks like this:
-
-```json
-{
-  "dsh": {
-    "profile": {
-      "bundles": [
-        "@deepseek-ai/dsh-base",
-        "@deepseek-ai/dsh-web-app",
-        "@cngtn/dsh-cngtn-pond"
-      ]
-    }
-  }
-}
+```powershell
+dsh plugin --profile desktop remove @cngtn/dsh-cngtn-pond
 ```
+
+Then restart DeepSeek Harness. Only one theme at a time: token layers stack and
+the last one registered wins per token, so disable any other theme bundle first.
+
+### Settings on the plugin page
+
+The pond's three settings are declared in the **Host** half (`index.js`, a
+schemastery `Config`), which is what lets the Plugins page describe them, and the
+**Client** half registers a form for the `plugins.bundle.config` slot under the
+bundle's package name. Open **Plugins → cngtn Pond** and the form sits between the
+description and the component rows:
+
+| Field | Range | Meaning |
+|---|---|---|
+| Fish | 3–12 | Total school size, young koi included |
+| Colour | `mixed` / `warm` / `cool` / `mono` | Which pigments the fish draw from |
+| Young koi | on / off | The two small fish that keep to the deep water |
+
+Save writes through the Host config document; the running pond follows the same
+scope, so the change lands immediately without a restart. The same values can be
+set from the floating **Pond** panel or the console:
+
+```js
+cngtnPond.open()
+cngtnPond.set({ fish: 9, palette: 'warm' })
+cngtnPond.get()
+cngtnPond.list()
+cngtnPond.diag()   // what the settings wiring reached
+```
+
+A profile can also ship a house style by setting the row's `config` in
+`cordis.patch.yml`; the Host config, once saved, takes precedence over it.
 
 ### Manual install
-
-If you would rather wire it up yourself:
 
 ```powershell
 cd $env:USERPROFILE\.dsh\profiles\desktop
 dsh plugin --profile desktop add "file:C:/path/to/dsh-cngtn-pond"
 ```
-
-Only one theme at a time: token layers stack, and the last one registered wins
-per token. Disable the Fluent bundle (or any other theme) before enabling this
-one.
 
 ## Build and test
 
