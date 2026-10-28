@@ -208,6 +208,10 @@ export class PondEngine {
     const own = mergeNearby(this.rectsFor([AVOID_TARGETS]));
     const opaque = mergeNearby(this.rectsFor(OPAQUE_SELECTORS));
     const translucent = mergeNearby(this.rectsFor(TRANSLUCENT_SELECTORS));
+    // Blocks that paint their own frosted tint. The water under them is restored
+    // to full strength: the tint already carries legibility, and a koi faded to
+    // 55 % behind a blur is indistinguishable from a blur that is not working.
+    const frosted = this.rectsFor(['[data-code-wrap]', '[class*="_ioCard"]']);
 
     // Steering is limited to the panels that genuinely hide water. The faded
     // boxes only dim what is drawn beneath them; adding them to `avoid` would
@@ -220,6 +224,7 @@ export class PondEngine {
       // The transcript: every message is text on water, so a koi has to be a
       // whisper there or the paragraph stops being readable.
       { boxes: translucent, floor: 0.55 },
+      { boxes: frosted, floor: 1, mode: 'restore' },
     ]);
   }
 

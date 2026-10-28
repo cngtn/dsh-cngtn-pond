@@ -278,13 +278,13 @@ pair('--dsw-alias-file-diff-deleted-marker', 'critical');
 // on the card itself, and the token only has to stop being opaque.
 set(
   '--dsw-alias-markdown-code-block',
-  'color-mix(in srgb, #f8f7f4 74%, transparent)',
-  'color-mix(in srgb, #201f1c 72%, transparent)'
+  'color-mix(in srgb, #f8f7f4 30%, transparent)',
+  'color-mix(in srgb, #201f1c 30%, transparent)'
 );
 set(
   '--dsw-alias-markdown-code-block-banner',
-  'color-mix(in srgb, #f2f1ed 82%, transparent)',
-  'color-mix(in srgb, #252320 80%, transparent)'
+  'color-mix(in srgb, #f2f1ed 38%, transparent)',
+  'color-mix(in srgb, #252320 36%, transparent)'
 );
 pair('--dsw-alias-markdown-inline-code', 'layer2');
 set('--dsw-alias-markdown-code-segment-selected', PAPER.control, INK.control);
@@ -393,13 +393,13 @@ set('--dsw-specific-tip', PAPER.layer1, INK.layer2);
 // block in the transcript the user "owns", and it sits over the water.
 set(
   '--dsw-specific-bubble',
-  'color-mix(in srgb, #ecebe6 72%, transparent)',
-  'color-mix(in srgb, #2b2925 70%, transparent)'
+  'color-mix(in srgb, #ecebe6 46%, transparent)',
+  'color-mix(in srgb, #2b2925 44%, transparent)'
 );
 set(
   '--dsw-specific-bubble-highlight',
-  'color-mix(in srgb, #e3e1db 78%, transparent)',
-  'color-mix(in srgb, #34312c 76%, transparent)'
+  'color-mix(in srgb, #e3e1db 52%, transparent)',
+  'color-mix(in srgb, #34312c 50%, transparent)'
 );
 
 // ── Settings and onboarding ───────────────────────────────────────────────

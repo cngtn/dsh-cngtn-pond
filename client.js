@@ -860,6 +860,10 @@ class KoiRenderer {
     const pad = cw * 4;
     for (const group of groups) for (const b of group.boxes) {
       const floor = group.floor;
+      // A `restore` group raises the floor rather than lowering it: used where a
+      // block paints its own tint, so the water beneath it does not also have to
+      // be faded. Groups run in order, so a restore after the dim wins.
+      const restore = group.mode === 'restore';
       const c0 = Math.max(0, Math.floor((b.left - pad) / cw));
       const c1 = Math.min(cols - 1, Math.floor((b.right + pad) / cw));
       const r0 = Math.max(0, Math.floor((b.top - pad) / ch));
@@ -870,7 +874,8 @@ class KoiRenderer {
           const y = r * ch + ch / 2;
           const d = Math.hypot(Math.max(b.left - x, 0, x - b.right), Math.max(b.top - y, 0, y - b.bottom));
           const i = r * cols + c;
-          cellDim[i] = Math.min(cellDim[i], floor + (1 - floor) * smoothstep(0, pad, d));
+          const target = floor + (1 - floor) * smoothstep(0, pad, d);
+          cellDim[i] = restore ? Math.max(cellDim[i], target) : Math.min(cellDim[i], target);
         }
       }
     }
@@ -1558,6 +1563,10 @@ class PondEngine {
     const own = mergeNearby(this.rectsFor([AVOID_TARGETS]));
     const opaque = mergeNearby(this.rectsFor(OPAQUE_SELECTORS));
     const translucent = mergeNearby(this.rectsFor(TRANSLUCENT_SELECTORS));
+    // Blocks that paint their own frosted tint. The water under them is restored
+    // to full strength: the tint already carries legibility, and a koi faded to
+    // 55 % behind a blur is indistinguishable from a blur that is not working.
+    const frosted = this.rectsFor(['[data-code-wrap]', '[class*="_ioCard"]']);
 
     // Steering is limited to the panels that genuinely hide water. The faded
     // boxes only dim what is drawn beneath them; adding them to `avoid` would
@@ -1570,6 +1579,7 @@ class PondEngine {
       // The transcript: every message is text on water, so a koi has to be a
       // whisper there or the paragraph stops being readable.
       { boxes: translucent, floor: 0.55 },
+      { boxes: frosted, floor: 1, mode: 'restore' },
     ]);
   }
 
@@ -1933,13 +1943,13 @@ pair('--dsw-alias-file-diff-deleted-marker', 'critical');
 // on the card itself, and the token only has to stop being opaque.
 set(
   '--dsw-alias-markdown-code-block',
-  'color-mix(in srgb, #f8f7f4 74%, transparent)',
-  'color-mix(in srgb, #201f1c 72%, transparent)'
+  'color-mix(in srgb, #f8f7f4 30%, transparent)',
+  'color-mix(in srgb, #201f1c 30%, transparent)'
 );
 set(
   '--dsw-alias-markdown-code-block-banner',
-  'color-mix(in srgb, #f2f1ed 82%, transparent)',
-  'color-mix(in srgb, #252320 80%, transparent)'
+  'color-mix(in srgb, #f2f1ed 38%, transparent)',
+  'color-mix(in srgb, #252320 36%, transparent)'
 );
 pair('--dsw-alias-markdown-inline-code', 'layer2');
 set('--dsw-alias-markdown-code-segment-selected', PAPER.control, INK.control);
@@ -2048,13 +2058,13 @@ set('--dsw-specific-tip', PAPER.layer1, INK.layer2);
 // block in the transcript the user "owns", and it sits over the water.
 set(
   '--dsw-specific-bubble',
-  'color-mix(in srgb, #ecebe6 72%, transparent)',
-  'color-mix(in srgb, #2b2925 70%, transparent)'
+  'color-mix(in srgb, #ecebe6 46%, transparent)',
+  'color-mix(in srgb, #2b2925 44%, transparent)'
 );
 set(
   '--dsw-specific-bubble-highlight',
-  'color-mix(in srgb, #e3e1db 78%, transparent)',
-  'color-mix(in srgb, #34312c 76%, transparent)'
+  'color-mix(in srgb, #e3e1db 52%, transparent)',
+  'color-mix(in srgb, #34312c 50%, transparent)'
 );
 
 // ── Settings and onboarding ───────────────────────────────────────────────
@@ -2409,8 +2419,19 @@ html body [data-composer-seat] {
 html body [class*="_bubble"],
 html body .md-code-block,
 html body [class*="_ioCard"] {
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  backdrop-filter: blur(18px) saturate(145%);
+  /* 14px, not 30: the koi is an 8px glyph grid, and a wider radius averages it
+     into a flat wash. At 14px the fish is clearly softened but still reads as a
+     shape, which is what makes the glass legible as glass. */
+  -webkit-backdrop-filter: blur(14px) saturate(155%);
+  backdrop-filter: blur(14px) saturate(155%);
+}
+
+/* The code block's banner sits in a wrapper the renderer paints with the plain
+   page colour, which would put an opaque 42px band across the top of an
+   otherwise frosted card. The wrapper is a hashed class, so it is reached
+   through the \`data-code-block-banner\` hook it contains. */
+html body div:has(> [data-code-block-banner]) {
+  background-color: transparent;
 }
 
 /* ── Link treatment ───────────────────────────────────────────────────────

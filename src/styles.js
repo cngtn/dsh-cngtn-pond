@@ -243,8 +243,19 @@ html body [data-composer-seat] {
 html body [class*="_bubble"],
 html body .md-code-block,
 html body [class*="_ioCard"] {
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  backdrop-filter: blur(18px) saturate(145%);
+  /* 14px, not 30: the koi is an 8px glyph grid, and a wider radius averages it
+     into a flat wash. At 14px the fish is clearly softened but still reads as a
+     shape, which is what makes the glass legible as glass. */
+  -webkit-backdrop-filter: blur(14px) saturate(155%);
+  backdrop-filter: blur(14px) saturate(155%);
+}
+
+/* The code block's banner sits in a wrapper the renderer paints with the plain
+   page colour, which would put an opaque 42px band across the top of an
+   otherwise frosted card. The wrapper is a hashed class, so it is reached
+   through the \`data-code-block-banner\` hook it contains. */
+html body div:has(> [data-code-block-banner]) {
+  background-color: transparent;
 }
 
 /* ── Link treatment ───────────────────────────────────────────────────────

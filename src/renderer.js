@@ -274,6 +274,10 @@ export class KoiRenderer {
     const pad = cw * 4;
     for (const group of groups) for (const b of group.boxes) {
       const floor = group.floor;
+      // A `restore` group raises the floor rather than lowering it: used where a
+      // block paints its own tint, so the water beneath it does not also have to
+      // be faded. Groups run in order, so a restore after the dim wins.
+      const restore = group.mode === 'restore';
       const c0 = Math.max(0, Math.floor((b.left - pad) / cw));
       const c1 = Math.min(cols - 1, Math.floor((b.right + pad) / cw));
       const r0 = Math.max(0, Math.floor((b.top - pad) / ch));
@@ -284,7 +288,8 @@ export class KoiRenderer {
           const y = r * ch + ch / 2;
           const d = Math.hypot(Math.max(b.left - x, 0, x - b.right), Math.max(b.top - y, 0, y - b.bottom));
           const i = r * cols + c;
-          cellDim[i] = Math.min(cellDim[i], floor + (1 - floor) * smoothstep(0, pad, d));
+          const target = floor + (1 - floor) * smoothstep(0, pad, d);
+          cellDim[i] = restore ? Math.max(cellDim[i], target) : Math.min(cellDim[i], target);
         }
       }
     }
