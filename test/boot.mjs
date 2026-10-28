@@ -126,6 +126,29 @@ if (layer) {
   check(fill && /transparent|color-mix/.test(fill.light), 'menu fill is translucent, not opaque');
 }
 
+// The stylesheet is a string inside the bundle; these checks prove the two
+// surfaces that were easy to get wrong are still wired to the shell's own hooks
+// rather than to a hashed class.
+const stylesheet = src.slice(src.indexOf('const __m_styles'), src.indexOf('const __m_apply'));
+
+check(
+  stylesheet.includes('[data-conversation-composer-overlay]'),
+  'the Trajectory overlay is styled through its own hook'
+);
+check(
+  stylesheet.includes('tr[data-trajectory-row-key] > td:first-child') &&
+    stylesheet.includes('tr[data-trajectory-row-key] > td:last-child'),
+  'Trajectory rows are rounded through their first and last cell'
+);
+check(
+  stylesheet.includes('border-spacing: 0 6px'),
+  'Trajectory rows are separated by a 6px gap'
+);
+check(
+  !/\[data-chat-flow\]:not\(/.test(stylesheet),
+  'the transcript column is not frosted (prose stays crisp)'
+);
+
 check(disposers.length === 3, 'three effects registered', String(disposers.length));
 check(disposers.every((d) => typeof d === 'function'), 'every effect returned a disposer');
 

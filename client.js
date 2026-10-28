@@ -2434,6 +2434,86 @@ html body div:has(> [data-code-block-banner]) {
   background-color: transparent;
 }
 
+/* ── The Trajectory tab ───────────────────────────────────────────────────
+   Trajectory is not a transcript: it is a ledger of every step, rendered as a
+   real <table> inside its own overlay. The overlay paints the page colour, so
+   the tab is the one view where the pond disappears completely; the rows are
+   table cells with no surface of their own, so the list reads as one long
+   striped block rather than as items.
+
+   Two changes, both scoped to hooks the shell publishes:
+
+   1. **The pane becomes glass.** \`[data-conversation-composer-overlay]\` only
+      exists in this tab (the Chat view does not render it), which makes it a
+      precise hook rather than a guess. Its sticky filter bar keeps a stronger
+      tint so the checkboxes and search stay legible while the ledger scrolls
+      underneath.
+
+   2. **Each row becomes a card.** A \`<tr>\` cannot carry a radius, so the row is
+      rounded through its two cells: the first gets the left corners, the last
+      the right ones, and both share one tint and one blur. \`border-spacing\`
+      supplies the gap between cards. This keeps \`table-layout: fixed\` and the
+      virtualiser's row measurement intact — the only thing that changes is that
+      a row is now 36px tall instead of 30px, which the virtualiser measures.
+
+   The cells are hashed classes, so everything here is reached through
+   \`[data-trajectory-scroll]\` and \`[data-trajectory-row-key]\`. */
+html body [data-conversation-composer-overlay] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* The filter bar: sticky, so it needs its own material to stay readable. */
+html body [data-conversation-composer-overlay] > div:first-child {
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 58%, transparent) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+}
+
+/* The split pane that wraps the scroll area: the only \`:has()\` besides the
+   centre column, and for the same reason — the wrapper has no hook of its own. */
+html body div:has(> [data-trajectory-scroll]) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html body [data-trajectory-scroll] {
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 18%, transparent) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+}
+
+html body [data-trajectory-scroll] > table {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-collapse: separate !important;
+  border-spacing: 0 6px !important;
+}
+
+html body [data-trajectory-scroll] tr[data-trajectory-row-key] > td {
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 30%, transparent) !important;
+  border-top: 0.5px solid var(--dsw-alias-border-l1);
+  border-bottom: 0.5px solid var(--dsw-alias-border-l1);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+}
+
+html body [data-trajectory-scroll] tr[data-trajectory-row-key] > td:first-child {
+  border-left: 0.5px solid var(--dsw-alias-border-l1);
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+html body [data-trajectory-scroll] tr[data-trajectory-row-key] > td:last-child {
+  border-right: 0.5px solid var(--dsw-alias-border-l1);
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+html body [data-trajectory-scroll] tr[data-trajectory-row-key]:hover > td {
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 46%, transparent) !important;
+}
+
 /* ── Link treatment ───────────────────────────────────────────────────────
    The site never colours a link; it underlines one, faintly, and firms the
    underline on hover. Reproduced here for prose links only. */
@@ -2506,6 +2586,16 @@ body {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
+  html body [data-conversation-composer-overlay] {
+    background-color: var(--dsw-alias-bg-base) !important;
+  }
+  html body [data-conversation-composer-overlay] > div:first-child,
+  html body [data-trajectory-scroll],
+  html body [data-trajectory-scroll] tr[data-trajectory-row-key] > td {
+    background-color: var(--dsw-alias-bg-base) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 /* ── Print ────────────────────────────────────────────────────────────────
@@ -2519,7 +2609,9 @@ body {
   }
   html body [class*="_bubble"],
   html body .md-code-block,
-  html body [class*="_ioCard"] {
+  html body [class*="_ioCard"],
+  html body [data-trajectory-scroll],
+  html body [data-trajectory-scroll] tr[data-trajectory-row-key] > td {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }

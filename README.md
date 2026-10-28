@@ -132,6 +132,27 @@ theme can be re-checked rather than taken from a screenshot.
   pellet, that the pellet and ripple counts stay capped, and that a large resize
   re-seeds while a small one does not.
 
+## The Trajectory tab
+
+Trajectory is a different surface from the transcript: a `<table>` of every
+step, inside an overlay that paints the page colour. Left alone it is the one
+view where the pond disappears and the list reads as one long striped block.
+
+The theme turns the tab into a ledger of glass cards:
+
+| Layer | What it becomes |
+|---|---|
+| `[data-conversation-composer-overlay]` | transparent — this hook exists only in Trajectory, so the rule cannot touch Chat |
+| the sticky filter bar | a `58 %` tint over `blur(16px)`, so Duration / Turns / Calls / Search stay readable while the ledger scrolls under it |
+| `[data-trajectory-scroll]` | an `18 %` sheet over `blur(14px)` |
+| each `tr[data-trajectory-row-key]` | a card: `30 %` tint, `blur(14px)`, 10px corners, hairline outline, 6px gap to the next card |
+
+A `<tr>` cannot carry a radius, so the card is drawn through its two cells —
+first cell takes the left corners, last cell the right ones, both share one tint
+and one filter. `border-spacing: 0 6px` supplies the gap. The table keeps
+`table-layout: fixed` and the virtualiser keeps measuring rows; a row is simply
+36px tall instead of 30px now, which it observes like any other size change.
+
 ## What is deliberately not copied
 
 | From the site | Why not |
@@ -167,7 +188,8 @@ after `dsh plugin --profile … install` and a restart.
 | Fonts | `--dsh-font-family-text-default` resolves to Geist Mono, then Cascadia Code NF |
 | Frame transparency | frame and centre column compute to `rgba(0, 0, 0, 0)`; every panel is a frosted sheet |
 | Titlebar | the 40 px Windows caption strip computes to a 58 % tint over `blur(22px)`, so `Application / Edit` floats on the same glass as the panels |
-| Chat glass | only two blocks are frosted: the sent bubble (`color-mix(… 72%, transparent)` + `blur(18px)`) and the code / command card (`74 %` + `blur(18px)`). The transcript column itself computes to `backdrop-filter: none`, so response prose stays crisp |
+| Chat glass | only two blocks are frosted: the sent bubble (`46 %` tint + `blur(14px)`) and the code / command card (`30 %` + `blur(14px)`). The transcript column itself computes to `backdrop-filter: none`, so response prose stays crisp |
+| Trajectory glass | the tab's overlay is transparent, the ledger scrolls on an `18 %` sheet, and every row is a card: `30 %` tint, `blur(14px)`, 10px corners on all four sides, 6px gap between rows |
 | Koi steering | the koi swim under the glass panels rather than around them |
 | Text legibility | response prose sits on the open water; the two frosted blocks carry their own tint |
 | Frame budget | 180 frames: p50 16.7 ms, p95 16.8 ms, max 16.9 ms (60 Hz, no dropped frame) |
