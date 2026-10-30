@@ -156,6 +156,34 @@ check(
   'Trajectory rows are separated by a 6px gap'
 );
 check(
+  stylesheet.includes(
+    '[data-rightbar-col] [data-sidebar-right-panel="push"][data-sidebar-right-open]'
+  ),
+  'the right panel is inset as a card in push mode'
+);
+check(
+  /\[data-rightbar-col\]::before\s*\{[^}]*box-shadow:\s*var\(--cngtn-shadow-card\)/s.test(
+    stylesheet
+  ),
+  'the right panel carries the same progressive card shadow'
+);
+check(
+  /\[data-rightbar-collapsed\]\s+\[data-rightbar-col\]::before\s*\{\s*display:\s*none/.test(
+    stylesheet
+  ),
+  'the right card disappears with its track'
+);
+check(
+  /\[data-sidebar-right-panel="fullscreen"\]\[data-sidebar-right-open\]::before\s*\{[^}]*backdrop-filter:\s*blur\(/s.test(
+    stylesheet
+  ),
+  'the expanded right panel keeps its frosted sheet'
+);
+check(
+  !/\[data-sidebar-right-panel="fullscreen"\]::before/.test(stylesheet),
+  'the frosted sheet is gated on the open state'
+);
+check(
   !/\[data-chat-flow\]:not\(/.test(stylesheet),
   'the transcript column is not frosted (prose stays crisp)'
 );

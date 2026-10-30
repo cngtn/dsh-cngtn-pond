@@ -2730,6 +2730,83 @@ html body [data-slot="sidebar"] > div {
   overflow: hidden;
 }
 
+html body [data-rightbar-col]::before {
+  inset: 10px 18px 20px 12px;
+  border-radius: 14px;
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  box-shadow: var(--cngtn-shadow-card);
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 55%, transparent);
+}
+
+html body [data-slot="root"] > div[data-rightbar-collapsed] [data-rightbar-col]::before {
+  display: none;
+}
+
+/* Closed panel: no card, whatever the track still occupies. */
+html body [data-rightbar-col]:not(:has([data-sidebar-right-open]))::before {
+  display: none;
+}
+
+html body [data-rightbar-col] [data-sidebar-right-panel="push"][data-sidebar-right-open] {
+  top: 10px;
+  right: 18px;
+  bottom: 20px;
+  left: 12px;
+  width: auto !important;
+  max-width: none;
+  box-sizing: border-box;
+  border-radius: 14px;
+  overflow: clip;
+}
+
+/* The dock pane's own hairline and single-sided radius are the old flush edge. */
+html body [data-rightbar-col] [data-dockkit-pane],
+html body [data-rightbar-col] [data-dockkit-content]:not([data-dockkit-float]),
+html body [data-rightbar-col] [data-dockkit-empty] {
+  border: 0 !important;
+  border-radius: inherit !important;
+  background-color: transparent !important;
+}
+
+html body [data-slot="root"] > div[data-rightbar-fullscreen] > [data-rightbar-col]:has([data-sidebar-right-open]) {
+  z-index: 15;
+}
+
+html body [data-rightbar-col] [data-sidebar-right-panel="fullscreen"][data-sidebar-right-open] {
+  top: 10px;
+  right: 18px;
+  bottom: 20px;
+  left: auto;
+  width: calc(100vw - var(--dsh-windows-sidebar-width, 280px) - 30px) !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  box-shadow: var(--cngtn-shadow-card);
+  overflow: clip;
+  isolation: isolate;
+}
+
+html body [data-rightbar-col] [data-sidebar-right-panel="fullscreen"][data-sidebar-right-open] > * {
+  width: 100%;
+}
+
+html body [data-rightbar-col] [data-sidebar-right-panel="fullscreen"][data-sidebar-right-open]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 58%, transparent);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  backdrop-filter: blur(26px) saturate(150%);
+}
+
+html body [data-slot="root"] > div[data-rightbar-fullscreen] > [data-rightbar-col]::before {
+  display: none;
+}
+
 /* The status strip is a 1px rule, not a surface, so it stays paper and the rule
    reads as a rule. */
 html body [data-shell-bottom] {
@@ -2977,6 +3054,7 @@ body {
 }
 `;
 }
+
 return { buildStyles };
 })();
 const { buildStyles } = __m_styles;

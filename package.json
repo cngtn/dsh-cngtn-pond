@@ -1,6 +1,6 @@
 {
   "name": "@cngtn/dsh-cngtn-pond",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A paper-and-ink theme for the DeepSeek Harness Web GUI: warm paper surfaces, hairline strokes, a monospace type ramp, near-square corners, and a living ASCII koi pond drawn behind the whole shell.",
   "type": "module",
   "exports": {
@@ -13,6 +13,8 @@
     "index.js",
     "client.js",
     "cordis.patch.yml",
+    "update.json",
+    "CHANGELOG.md",
     "bin/install.mjs",
     "locale/*.json",
     "icon.svg",

@@ -121,6 +121,16 @@ box is exactly the card's box.
 Collapsed, the column is an 18px rail holding one button, so the card styling is
 dropped and the rail stays bare.
 
+**The right panel matches it.** Its column is also a grid track, but the panel
+is an absolutely positioned occupant that normally meets the window's right
+edge. The panel is inset to the same 10/12/20/18px box as the sidebar, with the
+same 14px radius, hairline and progressive shadow, while the track and resize
+handle stay where the shell put them. Expanded, it is the same card stretched
+over the conversation, frosted over the chat instead of clear: the sheet is a
+58% paper tint under `blur(26px)`, and the column is raised above the centre
+column so nothing paints over the card. Closed, the card, the sheet and the
+raised stacking all go away with it.
+
 **The titlebar is transparent.** No fill, no blur: the pond runs to the top edge
 of the window and the caption floats over the water. The native minimise /
 maximise / close buttons stay an opaque block in the top-right corner — Windows

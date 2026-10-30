@@ -1,0 +1,19 @@
+{
+  "name": "@cngtn/dsh-cngtn-pond",
+  "latest": "1.4.0",
+  "releasedAt": "2026-10-30T18:30:00Z",
+  "tag": "v1.4.0",
+  "sources": {
+    "github": "github:cngtn/dsh-cngtn-pond#v1.4.0",
+    "npm": "@cngtn/dsh-cngtn-pond@1.4.0"
+  },
+  "minHost": "0.2.1-rc.2",
+  "summary": "Right panel floats as the same card as the sidebar, in docked and expanded form.",
+  "changes": [
+    "Docked right panel shares the sidebar inset, radius, hairline and progressive shadow.",
+    "Expanded right panel is the same card, spanning the conversation with a frosted sheet.",
+    "Dock pane hairline removed so the card is the only frame.",
+    "Card, sheet and stacking are gated on the open state, so hiding the panel clears the chat."
+  ],
+  "changelog": "CHANGELOG.md"
+}
