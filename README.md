@@ -131,11 +131,17 @@ over the conversation, frosted over the chat instead of clear: the sheet is a
 column so nothing paints over the card. Closed, the card, the sheet and the
 raised stacking all go away with it.
 
-**The titlebar is transparent.** No fill, no blur: the pond runs to the top edge
-of the window and the caption floats over the water. The native minimise /
-maximise / close buttons stay an opaque block in the top-right corner — Windows
-composites their overlay without alpha, so no theme can make them transparent.
-That block is the one place where the chrome and the water disagree.
+**The titlebar is transparent, including the native buttons.** No fill, no blur:
+the pond runs to the top edge of the window and the caption floats over the
+water. The three caption buttons follow because the desktop preload reads
+`--dsw-specific-sidebar-fill`, converts it to `rgba()`, and hands it to
+`setTitleBarOverlay` over IPC — so a transparent token makes a transparent
+button block. That is why the token is transparent here while the sidebar's own
+surfaces are painted from `--dsw-alias-bg-base`: one value drives both the panel
+and the native chrome.
+
+The one thing a theme cannot reach is the hover fill Electron paints behind a
+pressed button.
 
 ## Install
 

@@ -1,15 +1,17 @@
 {
   "name": "@cngtn/dsh-cngtn-pond",
-  "latest": "1.4.0",
-  "releasedAt": "2026-10-30T18:30:00Z",
-  "tag": "v1.4.0",
+  "latest": "1.5.0",
+  "releasedAt": "2026-10-30T19:20:00Z",
+  "tag": "v1.5.0",
   "sources": {
-    "github": "github:cngtn/dsh-cngtn-pond#v1.4.0",
-    "npm": "@cngtn/dsh-cngtn-pond@1.4.0"
+    "github": "github:cngtn/dsh-cngtn-pond#v1.5.0",
+    "npm": "@cngtn/dsh-cngtn-pond@1.5.0"
   },
   "minHost": "0.2.1-rc.2",
-  "summary": "Right panel floats as the same card as the sidebar, in docked and expanded form.",
+  "summary": "Native caption buttons follow the theme; right panel floats as the sidebar card.",
   "changes": [
+    "The three native Windows caption buttons are transparent, because the token the desktop preload forwards to setTitleBarOverlay is transparent.",
+    "Sidebar surfaces paint from --dsw-alias-bg-base instead of the now-transparent sidebar token.",
     "Docked right panel shares the sidebar inset, radius, hairline and progressive shadow.",
     "Expanded right panel is the same card, spanning the conversation with a frosted sheet.",
     "Dock pane hairline removed so the card is the only frame.",

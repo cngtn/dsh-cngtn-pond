@@ -125,6 +125,14 @@ if (layer) {
   const fill = layer.tokens['--dsw-menu-surface-fill'];
   check(fill && /transparent|color-mix/.test(fill.light), 'menu fill is translucent, not opaque');
 
+  // The desktop preload forwards this token to setTitleBarOverlay, so it has to
+  // be transparent for the three native caption buttons to follow the pond.
+  const captionFill = layer.tokens['--dsw-specific-sidebar-fill'];
+  check(
+    captionFill && captionFill.light === 'transparent' && captionFill.dark === 'transparent',
+    'the caption fill is transparent, so the native buttons follow the theme'
+  );
+
   // The theme must not impose a font: those tokens are the built-in stacks that
   // sit behind the user's choice in Settings, so overriding them would pin the
   // whole GUI to one typeface.

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.0
+
+The three native Windows caption buttons now follow the theme.
+
+The desktop preload reads `--dsw-specific-sidebar-fill`, converts it to
+`rgba()`, and forwards it to `setTitleBarOverlay` over IPC, so that token — not
+CSS — decides the colour of the minimise / maximise / close block. It was the
+paper colour, so the block stayed opaque while the strip around it was water.
+
+The token is now `transparent` in both modes, and the sidebar's own surfaces are
+painted from `--dsw-alias-bg-base` instead, which is what they were mixing the
+token into anyway. One value now drives both the panel and the native chrome.
+
+Verified on the desktop app: the caption block reports
+`rgba(0, 0, 0, 0)` and the pond runs behind it, in light and dark alike, with
+the sidebar card unchanged.
+
+The hover fill Electron paints behind a pressed caption button is still the
+shell's own; a theme cannot reach it.
+
 ## 1.4.0
 
 The right panel becomes the same floating card as the sidebar, in both its

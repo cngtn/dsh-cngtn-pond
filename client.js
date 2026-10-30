@@ -2335,7 +2335,11 @@ pair('--dsw-focus-ring-color', 'focus');
 set('--dsw-focus-ring-width', '2px', '2px');
 
 // ── Shell specifics ───────────────────────────────────────────────────────
-pair('--dsw-specific-sidebar-fill', 'sidebar');
+// Transparent, not the paper colour: the desktop preload reads this token and
+// forwards it to `setTitleBarOverlay`, so a transparent value is the only way
+// the three native caption buttons pick up the pond instead of a paper block.
+// The sidebar's own surfaces are painted from `--dsw-alias-bg-base` in styles.js.
+set('--dsw-specific-sidebar-fill', 'transparent', 'transparent');
 pair('--dsw-specific-sidebar-nav-item-active', 'subtleActive');
 pair('--dsw-specific-sidebar-nav-item-active-accent', 'accentSoft');
 pair('--dsw-specific-sidebar-nav-item-hover', 'subtleHover');
@@ -2551,15 +2555,15 @@ body [data-slot="root"] > div {
    edge of the window, and the caption floats over the water like the rest of the
    interface.
 
-   Two consequences, both accepted deliberately:
+   The caption strip and the three native buttons follow the same transparent
+   token: the desktop preload reads \`--dsw-specific-sidebar-fill\` and forwards
+   it to \`setTitleBarOverlay\`, so both the strip and the button block pick up
+   the water. The one thing a theme cannot touch is the hover fill Electron
+   paints behind a pressed button.
 
-   - The minimise / maximise / close buttons are drawn by Electron in a block
-     whose colour comes from the same token, and Windows composites that block
-     without alpha. They stay an opaque block in the top-right corner; nothing in
-     a theme can change that.
-   - The caption text and the menu labels sit directly on moving glyphs. They
-     keep their own hover fills and the label colours, which is enough to read
-     them, but there is no paper behind them.
+   The caption text and the menu labels sit directly on moving glyphs. They keep
+   their own label colours, which is enough to read them, but there is no paper
+   behind them.
 
    The drag region is untouched: the pseudo-element owns no children, so it
    cannot become a containing block for anything. */
@@ -2642,7 +2646,7 @@ html body [data-composer-card]::before {
   backdrop-filter: blur(24px) saturate(150%);
 }
 html body [data-slot="root"] > div > div:nth-child(1)::before {
-  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 40%, transparent);
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 40%, transparent);
 }
 html body [data-rightbar-col]::before {
   background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 40%, transparent);
@@ -2694,7 +2698,7 @@ html body [data-slot="root"] > div > div:nth-child(1)::before {
   border: 0.5px solid var(--dsw-alias-border-l1);
   /* Seven stacked layers, not one: see \`--cngtn-shadow-card\` in tokens.js. */
   box-shadow: var(--cngtn-shadow-card);
-  background-color: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 55%, transparent);
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 55%, transparent);
 }
 
 /* Collapsed, the column is an 18px rail holding one expand button. A card there
@@ -3018,7 +3022,7 @@ body {
     backdrop-filter: none;
   }
   html[data-windows-titlebar] body [data-slot="root"] > div::before {
-    background-color: var(--dsw-specific-sidebar-fill);
+    background-color: var(--dsw-alias-bg-base);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }

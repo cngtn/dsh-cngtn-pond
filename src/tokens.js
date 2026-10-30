@@ -408,7 +408,11 @@ pair('--dsw-focus-ring-color', 'focus');
 set('--dsw-focus-ring-width', '2px', '2px');
 
 // ── Shell specifics ───────────────────────────────────────────────────────
-pair('--dsw-specific-sidebar-fill', 'sidebar');
+// Transparent, not the paper colour: the desktop preload reads this token and
+// forwards it to `setTitleBarOverlay`, so a transparent value is the only way
+// the three native caption buttons pick up the pond instead of a paper block.
+// The sidebar's own surfaces are painted from `--dsw-alias-bg-base` in styles.js.
+set('--dsw-specific-sidebar-fill', 'transparent', 'transparent');
 pair('--dsw-specific-sidebar-nav-item-active', 'subtleActive');
 pair('--dsw-specific-sidebar-nav-item-active-accent', 'accentSoft');
 pair('--dsw-specific-sidebar-nav-item-hover', 'subtleHover');
