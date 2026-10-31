@@ -1,4 +1,4 @@
-# cngtn Pond — a paper-and-ink theme for DeepSeek Harness
+# Dsh-Pond-Koi — a paper-and-ink theme for DeepSeek Harness
 
 A theme bundle for the DSH Web GUI: warm paper, warm ink, hairline strokes,
 near-square corners — and a living ASCII koi pond behind the whole
@@ -179,7 +179,7 @@ the last one registered wins per token, so disable any other theme bundle first.
 The pond's three settings are declared in the **Host** half (`index.js`, a
 schemastery `Config`), which is what lets the Plugins page describe them, and the
 **Client** half registers a form for the `plugins.bundle.config` slot under the
-bundle's package name. Open **Plugins → cngtn Pond** and the form sits between the
+bundle's package name. Open **Plugins → Dsh-Pond-Koi** and the form sits between the
 description and the component rows:
 
 | Field | Range | Meaning |

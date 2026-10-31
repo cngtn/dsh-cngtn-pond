@@ -1,6 +1,6 @@
 {
   "name": "@cngtn/dsh-cngtn-pond",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "A paper-and-ink theme for the DeepSeek Harness Web GUI: warm paper surfaces, hairline strokes, a monospace type ramp, near-square corners, and a living ASCII koi pond drawn behind the whole shell.",
   "type": "module",
   "exports": {
@@ -37,7 +37,7 @@
         "@deepseek-ai/dsh-client-ui-theme"
       ]
     },
-    "displayName": "cngtn Pond",
+    "displayName": "Dsh-Pond-Koi",
     "description": "Paper-and-ink theme with a living ASCII koi pond behind the shell."
   },
   "devDependencies": {

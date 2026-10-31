@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.1
+
+The plugin is now named **Dsh-Pond-Koi** in the plugin manager, its localized
+metadata and the README. The package id, executable name, bundle row id and
+console API are unchanged, so existing installations continue to update in
+place.
+
 ## 1.5.0
 
 The three native Windows caption buttons now follow the theme.

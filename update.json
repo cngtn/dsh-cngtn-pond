@@ -1,21 +1,19 @@
 {
   "name": "@cngtn/dsh-cngtn-pond",
-  "latest": "1.5.0",
-  "releasedAt": "2026-10-30T19:20:00Z",
-  "tag": "v1.5.0",
+  "latest": "1.5.1",
+  "releasedAt": "2026-10-31T02:27:35Z",
+  "tag": "v1.5.1",
   "sources": {
-    "github": "github:cngtn/dsh-cngtn-pond#v1.5.0",
-    "npm": "@cngtn/dsh-cngtn-pond@1.5.0"
+    "github": "github:cngtn/dsh-cngtn-pond#v1.5.1",
+    "npm": "@cngtn/dsh-cngtn-pond@1.5.1"
   },
   "minHost": "0.2.1-rc.2",
-  "summary": "Native caption buttons follow the theme; right panel floats as the sidebar card.",
+  "summary": "Renamed to Dsh-Pond-Koi without changing the package id or existing configuration.",
   "changes": [
-    "The three native Windows caption buttons are transparent, because the token the desktop preload forwards to setTitleBarOverlay is transparent.",
-    "Sidebar surfaces paint from --dsw-alias-bg-base instead of the now-transparent sidebar token.",
-    "Docked right panel shares the sidebar inset, radius, hairline and progressive shadow.",
-    "Expanded right panel is the same card, spanning the conversation with a frosted sheet.",
-    "Dock pane hairline removed so the card is the only frame.",
-    "Card, sheet and stacking are gated on the open state, so hiding the panel clears the chat."
+    "The plugin display name is Dsh-Pond-Koi.",
+    "English and Vietnamese locale titles use the new name.",
+    "The README heading and icon accessibility label use the new name.",
+    "The package id, bin name, bundle row id and console API remain stable."
   ],
   "changelog": "CHANGELOG.md"
 }
