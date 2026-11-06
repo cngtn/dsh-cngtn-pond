@@ -6,14 +6,18 @@ shell. The visual language is derived from a single-screen portfolio site; the
 analysis that produced it lives in
 [cngtn-analysis](https://github.com/cngtn/cngtn-analysis).
 
-![The pond behind the shell, light](docs/pond.png)
+![The pond behind the shell, dark](docs/preview-dark-1.png)
 
-![The pond behind the shell, dark](docs/pond-dark.png)
+![The pond behind the shell, dark — transcript](docs/preview-dark-2.png)
 
-The reference screenshots the palette was measured against:
-[light](docs/reference-light.png) / [dark](docs/reference-dark.png). The
-transcript and the Task Board under the theme: [transcript](docs/transcript.png),
-[taskboard](docs/taskboard.png).
+![The pond behind the shell, light](docs/preview-light-1.png)
+
+![The pond behind the shell, light — transcript](docs/preview-light-2.png)
+
+Screenshots taken on the DeepSeek Harness desktop app **0.2.2-rc.1**, where the
+theme follows the 0.2.2 frame hooks (see the changelog for 1.5.2–1.5.4). The
+older reference screenshots the palette was measured against:
+[light](docs/reference-light.png) / [dark](docs/reference-dark.png).
 
 ## What it is
 
@@ -277,12 +281,13 @@ The theme sets no font family, so nothing is redistributed: typography comes
 from DSH's own stacks and the user's Settings choice. The `fonts/` directory is
 kept only as the source of the original reference; it is no longer inlined into
 `client.js`. Everything else in this bundle is original work.
-> **Host 0.2.2.** The 0.2.2 shell renamed the frame hooks this theme reads
-> (`[data-slot="main"]`, `[data-slot="sidebar"]`) and rewrote the Windows frame
-> surface, which made the chat opaque. 1.5.2 adds a section scoped to the
-> 0.2.2 hooks only (`styles.js`, "The 0.2.2 shell" and "The right panel, as a
-> card"), so both hosts work; the table below was recorded on 0.2.1 and its
-> frame and titlebar rows describe 0.2.1's frame.
+**Verified on Host 0.2.2-rc.1, desktop, light and dark** (screenshots above,
+recorded 2026-11-06 after the 1.5.2–1.5.4 fixes). The 0.2.2 shell renamed the
+frame hooks this theme reads (`[data-slot="main"]`, `[data-slot="sidebar"]`)
+and rewrote the Windows frame surface; the transparency chain now clears the
+window ground, the frame's second grid cell (the centre column), and the
+conversation pane through the hooks 0.2.2 publishes. The table below was
+recorded on 0.2.1; its frame and titlebar rows describe that host's frame.
 
 ## Verified on this machine
 
