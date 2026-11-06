@@ -1,19 +1,16 @@
 {
   "name": "@cngtn/dsh-cngtn-pond",
-  "latest": "1.5.2",
-  "releasedAt": "2026-11-06T14:10:00Z",
-  "tag": "v1.5.2",
+  "latest": "1.5.3",
+  "releasedAt": "2026-11-06T15:05:00Z",
+  "tag": "v1.5.3",
   "sources": {
-    "github": "github:cngtn/dsh-cngtn-pond#v1.5.2",
-    "npm": "@cngtn/dsh-cngtn-pond@1.5.2"
+    "github": "github:cngtn/dsh-cngtn-pond#v1.5.3",
+    "npm": "@cngtn/dsh-cngtn-pond@1.5.3"
   },
   "minHost": "0.2.1-rc.2",
-  "summary": "Works on Host 0.2.2: the chat shows the pond again, and the right panel is a card.",
+  "summary": "Desktop fix: the centre column clear now outranks the titlebar fill, so the pond shows through the chat.",
   "changes": [
-    "The transparency chain follows the 0.2.2 frame hooks, so the chat shows the pond again.",
-    "The window corners and the right panel read as glass on 0.2.2.",
-    "Icons render with precise, slightly heavier strokes.",
-    "0.2.1 hosts keep the previous behaviour."
+    "The centre column clear outranks the desktop titlebar fill (the 1.5.2 zero-specificity rule lost the cascade there)."
   ],
   "changelog": "CHANGELOG.md"
 }

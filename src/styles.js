@@ -577,11 +577,11 @@ body svg[viewBox="0 0 16 16"]:not([stroke-width]) :is(path, circle, rect, line, 
       the card — which is what "transparent" means here.
 
    2. **The centre column.** It is the frame's second grid cell and has no
-      attribute; matched by position and wrapped in :where(), so the rule
-      carries zero specificity. The shell's own [data-windows-titlebar]
-      .centerCol rule (two classes, 0.2.2's --dsw-alias-bg-base fill)
-      outranks it, and a build that reorders the frame falls back to an opaque
-      shell rather than painting over something else.
+      attribute, so it is matched by position. The shell's own
+      [data-windows-titlebar] .centerCol rule paints it with the page colour
+      and carries two class-level tokens, so the clear mirrors that attribute
+      to stay ahead of it; a build that reorders the frame simply falls back to
+      an opaque shell rather than painting over something else.
 
    3. **The conversation pane and the transcript.** The pane root, the Chat
       view's frame and its scroll wrapper are hashed classes the shell paints
@@ -595,7 +595,17 @@ body svg[viewBox="0 0 16 16"]:not([stroke-width]) :is(path, circle, rect, line, 
     background-image: none !important;
   }
 
-  html body [data-slot="root"] > div:where(:nth-child(2)) {
+  /* The centre column needs real weight: the shell's own
+     [data-windows-titlebar] .centerCol rule paints it with the page colour and
+     carries two class-level tokens, so a zero-specificity clear loses the
+     cascade and the chat renders as solid paper. Matching the shell's own
+     titlebar attribute puts this rule ahead of it. */
+  html[data-windows-titlebar] body [data-slot="root"] > div:nth-child(2) {
+    background-color: transparent !important;
+    background-image: none !important;
+  }
+
+  html body [data-slot="root"] > div:nth-child(2) {
     background-color: transparent !important;
     background-image: none !important;
   }

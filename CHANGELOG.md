@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.3
+
+The 1.5.2 centre-column clear was written at zero specificity, and on the
+desktop the shell's own `[data-windows-titlebar] .centerCol` rule — two
+class-level tokens painting the page colour — outranked it. The chat rendered
+as solid paper on desktop while the web surface stayed clear.
+
+The clear now mirrors the shell's `data-windows-titlebar` attribute, so it sits
+ahead of the fill in the cascade; the web path keeps the attribute-free rule.
+
 ## 1.5.2
 
 Works on Host 0.2.2, where the shell renamed its frame hooks and rewrote the
