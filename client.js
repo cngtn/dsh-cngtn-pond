@@ -2993,6 +2993,131 @@ body {
   --dsh-scrollbar-thumb-border: 1px;
 }
 
+/* ── Icon weight ──────────────────────────────────────────────────────────
+   The shell draws its 200 icons as inline SVG on a 16-unit grid, stroked at
+   \`stroke-width: 1\` (Regular) and \`1.3\` (Medium). At the sizes the shell uses —
+   12, 14, 15, 16px — a 1-unit stroke lands near 0.9 device pixels, so Chromium
+   antialiases it into a grey haze. Two changes fix that without touching any
+   geometry: \`geometricPrecision\` stops the fast-path rounding, and a slightly
+   heavier stroke lands the line on whole pixels.
+
+   Only the two stroke widths the shell actually sets are targeted, and only on
+   the 16-unit grid, so the brand mark (23.16 x 17.04) and the wordmark
+   (156 x 24) are left alone. \`currentColor\` still drives the colour, so light,
+   dark and every state keep working. */
+body svg[viewBox="0 0 16 16"][stroke-width="1"],
+body svg[viewBox="0 0 16 16"][stroke-width="1.3"] {
+  shape-rendering: geometricPrecision;
+}
+
+body svg[viewBox="0 0 16 16"][stroke-width="1"] :is(path, circle, rect, line, polyline, polygon) {
+  stroke-width: 1.3;
+}
+
+body svg[viewBox="0 0 16 16"][stroke-width="1.3"] :is(path, circle, rect, line, polyline, polygon) {
+  stroke-width: 1.55;
+}
+
+/* A handful of icons carry no \`stroke-width\` attribute at all — the send
+   arrow, the two panel toggles — so they inherited the SVG default of 1.
+   Matching on the stroke attribute instead keeps filled shapes untouched. */
+body svg[viewBox="0 0 16 16"]:not([stroke-width]) {
+  shape-rendering: geometricPrecision;
+}
+
+body svg[viewBox="0 0 16 16"]:not([stroke-width]) :is(path, circle, rect, line, polyline, polygon)[stroke="currentColor"] {
+  stroke-width: 1.3;
+}
+
+/* ── The 0.2.2 shell ──────────────────────────────────────────────────────
+   Host 0.2.2 renamed the shell's own DOM hooks and rewrote the frame's Windows
+   surface. The hooks this theme names in the rules above (the sidebar slot and
+   the main slot) no longer exist there, so those rules go quiet; the rules
+   below re-express them against the names 0.2.2 does publish, and against the
+   frame's own box, which publishes no hook at all.
+
+   Everything here is scoped to the new hooks, so the rules above keep working
+   verbatim on a 0.2.1 host, and this section is inert there.
+
+   1. **The window ground.** The frame paints the page colour, and in 0.2.2 the
+      40px Windows frame also carries the content radius: the centre column is
+      rounded at its top-left corner so it sits inside the panel card. Clearing
+      the frame's fill leaves that corner showing the window's ground instead of
+      the card — which is what "transparent" means here.
+
+   2. **The centre column.** It is the frame's second grid cell and has no
+      attribute; matched by position and wrapped in :where(), so the rule
+      carries zero specificity. The shell's own [data-windows-titlebar]
+      .centerCol rule (two classes, 0.2.2's --dsw-alias-bg-base fill)
+      outranks it, and a build that reorders the frame falls back to an opaque
+      shell rather than painting over something else.
+
+   3. **The conversation pane and the transcript.** The pane root, the Chat
+      view's frame and its scroll wrapper are hashed classes the shell paints
+      with the page colour. None publishes a hook, so each is reached through
+      the one it contains: the pane contains [data-conversation-content], the
+      view contains [data-chat-flow] and the scroll wrapper contains the
+      [data-chat-turn-spacer] rail spacer as its last child. */
+@media (prefers-reduced-transparency: no-preference) {
+  html body div:has(> [data-slot="root"]) {
+    background-color: transparent !important;
+    background-image: none !important;
+  }
+
+  html body [data-slot="root"] > div:where(:nth-child(2)) {
+    background-color: transparent !important;
+    background-image: none !important;
+  }
+
+  html[data-windows-titlebar] body [data-slot="root"] > div::before {
+    content: none !important;
+    background-color: transparent !important;
+  }
+}
+
+html body div:has(> [data-conversation-content]),
+html body div:has(> [data-chat-flow]),
+html body div:has(> [data-chat-turn-spacer]) {
+  background-color: transparent;
+}
+
+/* ── The right panel, as a card ───────────────────────────────────────────
+   0.2.2 anchors the right panel to the frame's right edge instead of stacking
+   it in the track, and draws its own fill, hairline and shadow. The card is
+   formed by insetting the panel inside the track and moving the frosted sheet
+   to the panel's ::before: the shell's own chrome stays on the panel, so the
+   hairline follows the card's edge rather than the track's. */
+html body [data-rightbar-col] [data-sidebar-right-session] > [data-sidebar-right-panel] {
+  box-sizing: border-box;
+  /* The panel is anchored to the right edge (right: 0), so the inset that
+     forms the card is top / right / bottom, and the card hugs that edge. */
+  margin-block: 10px 20px;
+  margin-inline-end: 12px;
+  border-radius: 14px;
+}
+
+html body [data-rightbar-col] [data-sidebar-right-session] > [data-sidebar-right-panel]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+  /* An explicit tint: a sheet of the panel's own page-colour fill would be
+     opaque, which is the failure this theme exists to avoid. */
+  background-color: color-mix(in srgb, var(--dsw-alias-bg-base) 55%, transparent);
+}
+
+/* The panel paints its own fill from the page colour token ("clear the row
+   fills, then tint the card" is how the sidebar card is built too); clearing it
+   is what lets the sheet above show through. */
+html body [data-rightbar-col] [data-sidebar-right-session] > [data-sidebar-right-panel] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
 /* ── Reduced transparency ─────────────────────────────────────────────────
    A user who asked Windows for less transparency gets flat paper: the pond
    stops painting (the engine clears it) and every glass panel regains its own

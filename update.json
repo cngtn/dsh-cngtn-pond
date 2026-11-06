@@ -1,19 +1,19 @@
 {
   "name": "@cngtn/dsh-cngtn-pond",
-  "latest": "1.5.1",
-  "releasedAt": "2026-10-31T02:27:35Z",
-  "tag": "v1.5.1",
+  "latest": "1.5.2",
+  "releasedAt": "2026-11-06T14:10:00Z",
+  "tag": "v1.5.2",
   "sources": {
-    "github": "github:cngtn/dsh-cngtn-pond#v1.5.1",
-    "npm": "@cngtn/dsh-cngtn-pond@1.5.1"
+    "github": "github:cngtn/dsh-cngtn-pond#v1.5.2",
+    "npm": "@cngtn/dsh-cngtn-pond@1.5.2"
   },
   "minHost": "0.2.1-rc.2",
-  "summary": "Renamed to Dsh-Pond-Koi without changing the package id or existing configuration.",
+  "summary": "Works on Host 0.2.2: the chat shows the pond again, and the right panel is a card.",
   "changes": [
-    "The plugin display name is Dsh-Pond-Koi.",
-    "English and Vietnamese locale titles use the new name.",
-    "The README heading and icon accessibility label use the new name.",
-    "The package id, bin name, bundle row id and console API remain stable."
+    "The transparency chain follows the 0.2.2 frame hooks, so the chat shows the pond again.",
+    "The window corners and the right panel read as glass on 0.2.2.",
+    "Icons render with precise, slightly heavier strokes.",
+    "0.2.1 hosts keep the previous behaviour."
   ],
   "changelog": "CHANGELOG.md"
 }

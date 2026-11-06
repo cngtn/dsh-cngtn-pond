@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.5.2
+
+Works on Host 0.2.2, where the shell renamed its frame hooks and rewrote the
+Windows frame surface.
+
+- **The pond shows through the chat again.** 0.2.2 renamed `[data-slot="main"]`
+  and `[data-slot="sidebar"]`, so the rules that cleared the centre column and
+  the style panel went quiet, and the pane's own page-colour fills covered the
+  water. The transparency chain is re-expressed against the hooks 0.2.2 does
+  publish: the window ground behind the frame, the frame's second grid cell,
+  and the conversation pane, Chat view frame and scroll wrapper through the
+  `[data-conversation-content]`, `[data-chat-flow]` and
+  `[data-chat-turn-spacer]` hooks they contain.
+- **The window corners read as transparent again.** 0.2.2 draws the content
+  radius on the frame, so the frame's page-colour fill showed at the top-left
+  corner inside the floating sidebar card; the frame's fill and its titlebar
+  strip pseudo-element are cleared.
+- **The right panel is a card again.** 0.2.2 anchors the panel to the frame's
+  right edge and draws its own page-colour fill; the panel is inset, its fill
+  cleared, and the frosted sheet moved to its `::before`.
+- **Icons read as strokes.** The 16-unit-grid icons render with
+  `geometricPrecision` and a slightly heavier stroke, so a 1-unit stroke at
+  12–16px no longer fogs into a grey haze.
+- Every new rule is scoped to a 0.2.2-only hook, so 0.2.1 hosts keep the
+  previous behaviour, and the `prefers-reduced-transparency: reduce` path still
+  gets flat paper.
+
 ## 1.5.1
 
 The plugin is now named **Dsh-Pond-Koi** in the plugin manager, its localized

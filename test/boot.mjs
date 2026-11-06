@@ -195,6 +195,49 @@ check(
   !/\[data-chat-flow\]:not\(/.test(stylesheet),
   'the transcript column is not frosted (prose stays crisp)'
 );
+check(
+  /svg\[viewBox="0 0 16 16"\]\[stroke-width="1"\][^{]*\{[^}]*shape-rendering:\s*geometricPrecision/.test(
+    stylesheet
+  ),
+  'icons opt into precise rendering'
+);
+check(
+  /\[stroke-width="1"\]\s*:is\(path[^)]*\)\s*\{[^}]*stroke-width:\s*1\.3/.test(stylesheet),
+  'the Regular stroke is heavier than the stock 1'
+);
+
+// ── Host 0.2.2 ─────────────────────────────────────────────────────────────
+// The 0.2.2 shell publishes different frame hooks. Each rule below is tied to
+// one of them, so a host that renames another hook fails the test the same way
+// it fails in the window.
+check(
+  /div:has\(> \[data-slot="root"\]\s*\)\s*\{[^}]*background-color:\s*transparent\s*!important/s.test(stylesheet),
+  'the window ground behind the frame goes clear on 0.2.2'
+);
+check(
+  /html body \[data-slot="root"\] > div:where\(:nth-child\(2\)\)\s*\{[^}]*background-color:\s*transparent/s.test(
+    stylesheet
+  ),
+  'the 0.2.2 centre column goes clear without outranking the shell rule'
+);
+check(
+  /div:has\(> \[data-conversation-content\]\s*\)/.test(stylesheet) &&
+    /div:has\(> \[data-chat-flow\]/s.test(stylesheet) &&
+    /div:has\(> \[data-chat-turn-spacer\]\s*\)/.test(stylesheet),
+  'the conversation pane and the transcript go clear on 0.2.2'
+);
+check(
+  /\[data-sidebar-right-session\] > \[data-sidebar-right-panel\]::before\s*\{[^}]*backdrop-filter:\s*blur\(/s.test(
+    stylesheet
+  ),
+  'the 0.2.2 right panel carries the frosted card'
+);
+check(
+  /@media \(prefers-reduced-transparency: no-preference\) \{[\s\S]*?div:has\(> \[data-slot="root"\]\s*\)/.test(
+    stylesheet
+  ),
+  'the 0.2.2 clears are gated on the user not asking for less transparency'
+);
 
 check(disposers.length === 3, 'three effects registered', String(disposers.length));
 check(disposers.every((d) => typeof d === 'function'), 'every effect returned a disposer');

@@ -277,6 +277,13 @@ The theme sets no font family, so nothing is redistributed: typography comes
 from DSH's own stacks and the user's Settings choice. The `fonts/` directory is
 kept only as the source of the original reference; it is no longer inlined into
 `client.js`. Everything else in this bundle is original work.
+> **Host 0.2.2.** The 0.2.2 shell renamed the frame hooks this theme reads
+> (`[data-slot="main"]`, `[data-slot="sidebar"]`) and rewrote the Windows frame
+> surface, which made the chat opaque. 1.5.2 adds a section scoped to the
+> 0.2.2 hooks only (`styles.js`, "The 0.2.2 shell" and "The right panel, as a
+> card"), so both hosts work; the table below was recorded on 0.2.1 and its
+> frame and titlebar rows describe 0.2.1's frame.
+
 ## Verified on this machine
 
 Recorded on the DSH desktop app (0.2.1-rc.3, Windows 11) and the `web` profile,
