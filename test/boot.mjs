@@ -215,10 +215,10 @@ check(
   'the window ground behind the frame goes clear on 0.2.2'
 );
 check(
-  /html\[data-windows-titlebar\] body \[data-slot="root"\] > div:nth-child\(2\)\s*\{[^}]*background-color:\s*transparent\s*!important/s.test(
+  /html\[data-windows-titlebar\] body \[data-slot="root"\] > div > div:nth-child\(2\)\s*\{[^}]*background-color:\s*transparent\s*!important/s.test(
     stylesheet
   ),
-  'the 0.2.2 centre column clear outranks the titlebar fill on desktop'
+  'the 0.2.2 centre column clear reaches the frame cell on desktop'
 );
 check(
   /div:has\(> \[data-conversation-content\]\s*\)/.test(stylesheet) &&

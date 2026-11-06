@@ -3064,17 +3064,11 @@ body svg[viewBox="0 0 16 16"]:not([stroke-width]) :is(path, circle, rect, line, 
     background-image: none !important;
   }
 
-  /* The centre column needs real weight: the shell's own
-     [data-windows-titlebar] .centerCol rule paints it with the page colour and
-     carries two class-level tokens, so a zero-specificity clear loses the
-     cascade and the chat renders as solid paper. Matching the shell's own
-     titlebar attribute puts this rule ahead of it. */
-  html[data-windows-titlebar] body [data-slot="root"] > div:nth-child(2) {
-    background-color: transparent !important;
-    background-image: none !important;
-  }
-
-  html body [data-slot="root"] > div:nth-child(2) {
+  /* The centre column is the frame's second cell: the frame is the root
+     anchor's first child, and the column carries the shell's own
+     [data-windows-titlebar] .centerCol fill, so the clear mirrors that
+     attribute and reaches the column through the frame. */
+  html[data-windows-titlebar] body [data-slot="root"] > div > div:nth-child(2) {
     background-color: transparent !important;
     background-image: none !important;
   }

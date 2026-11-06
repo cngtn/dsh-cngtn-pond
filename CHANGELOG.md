@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.4
+
+The 1.5.3 clear was pointed one level too high: `[data-slot="root"] >
+div:nth-child(2)` names the frame's sibling, not the centre column, which is
+the frame's own second cell. The desktop kept its page-colour fill and the chat
+stayed solid paper.
+
+The clear now reads `[data-slot="root"] > div > div:nth-child(2)` — the frame's
+second grid cell — still mirroring the shell's `data-windows-titlebar`
+attribute so it stays ahead of the fill. Verified in a faithful DOM (frame as
+the root anchor's child, the shell's titlebar fill competing): the column
+computes to rgba(0, 0, 0, 0).
+
 ## 1.5.3
 
 The 1.5.2 centre-column clear was written at zero specificity, and on the
