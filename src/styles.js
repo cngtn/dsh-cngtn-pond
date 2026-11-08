@@ -604,9 +604,16 @@ body svg[viewBox="0 0 16 16"]:not([stroke-width]) :is(path, circle, rect, line, 
     background-image: none !important;
   }
 
+  /* The strip must SURVIVE: the frame's ::before is the shell's own drag
+     region (40px, -webkit-app-region: drag), so content: none would kill
+     window dragging from the titlebar. The fill alone is cleared — the theme's
+     transparent --dsw-specific-sidebar-fill token already paints it with the
+     water, and the 0.2.1 rule above removes any blur. */
   html[data-windows-titlebar] body [data-slot="root"] > div::before {
-    content: none !important;
     background-color: transparent !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 

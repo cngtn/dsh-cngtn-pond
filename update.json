@@ -1,16 +1,16 @@
 {
   "name": "@cngtn/dsh-cngtn-pond",
-  "latest": "1.5.4",
-  "releasedAt": "2026-11-06T15:25:00Z",
-  "tag": "v1.5.4",
+  "latest": "1.5.5",
+  "releasedAt": "2026-11-08T08:00:00Z",
+  "tag": "v1.5.5",
   "sources": {
-    "github": "github:cngtn/dsh-cngtn-pond#v1.5.4",
-    "npm": "@cngtn/dsh-cngtn-pond@1.5.4"
+    "github": "github:cngtn/dsh-cngtn-pond#v1.5.5",
+    "npm": "@cngtn/dsh-cngtn-pond@1.5.5"
   },
   "minHost": "0.2.1-rc.2",
-  "summary": "Desktop fix, take two: the clear now reaches the centre column itself (the frame cell), not a non-existent node.",
+  "summary": "The Windows titlebar strip is kept, so window dragging works again; only its paint is cleared.",
   "changes": [
-    "The centre column clear targets the frame's second cell (the 1.5.3 selector pointed one level too high and matched nothing)."
+    "The frame's ::before drag strip is no longer removed (content: none had killed titlebar dragging); its paint alone is cleared."
   ],
   "changelog": "CHANGELOG.md"
 }

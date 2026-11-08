@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.5
+
+Turning the theme on stopped the window from being dragged by its titlebar: the
+1.5.2 fix removed the frame's `::before` with `content: none`, and on the
+desktop that pseudo-element is the shell's own drag region (40px,
+`-webkit-app-region: drag`).
+
+The strip survives again; only its paint is cleared, which the transparent
+`--dsw-specific-sidebar-fill` token and the no-blur rules already handle.
+Verified in a faithful DOM: the strip still exists with its drag region, and
+the frame, the strip and the centre column all compute to rgba(0, 0, 0, 0).
+
 ## 1.5.4
 
 The 1.5.3 clear was pointed one level too high: `[data-slot="root"] >
